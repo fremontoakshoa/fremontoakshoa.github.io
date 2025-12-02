@@ -1,0 +1,36 @@
+[
+  {
+    "id": "area-1",
+    "name": "Example Building A",
+    "notes": "Example polygon. Move/edit in polygons.json.",
+    "links": [
+      {
+        "label": "Sample PDF",
+        "url": "https://example.com/sample.pdf"
+      }
+    ],
+    "polygon": [
+      { "x": 0.25, "y": 0.25 },
+      { "x": 0.35, "y": 0.25 },
+      { "x": 0.35, "y": 0.35 },
+      { "x": 0.25, "y": 0.35 }
+    ]
+  },
+  {
+    "id": "area-2",
+    "name": "Example Pool Area",
+    "notes": "Another demo polygon.",
+    "links": [
+      {
+        "label": "Maintenance photos",
+        "url": "https://example.com/pool-photos"
+      }
+    ],
+    "polygon": [
+      { "x": 0.55, "y": 0.6 },
+      { "x": 0.68, "y": 0.6 },
+      { "x": 0.68, "y": 0.75 },
+      { "x": 0.55, "y": 0.75 }
+    ]
+  }
+]

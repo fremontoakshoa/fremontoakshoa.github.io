@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fremont Oaks Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .title-main {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .title-sub {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .small-btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid #cbd5f5;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .small-btn.active {
+      background: #1d4ed8;
+      color: white;
+      border-color: #1d4ed8;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .map-panel {
+      flex: 2;
+      min-height: 300px;
+      position: relative;
+      padding: 0.75rem;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      background: #000;
+    }
+
+    .map-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .map-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .area-polygon {
+      fill: rgba(20, 184, 166, 0.4);
+      stroke: rgb(15, 118, 110);
+      stroke-width: 2;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .area-polygon.selected {
+      fill: rgba(59, 130, 246, 0.5);
+      stroke: rgb(37, 99, 235);
+    }
+
+    .temp-polygon {
+      fill: rgba(239, 68, 68, 0.3);
+      stroke: rgb(220, 38, 38);
+      stroke-width: 2;
+      stroke-dasharray: 4 2;
+      pointer-events: none;
+    }
+
+    .draw-hint {
+      position: absolute;
+      left: 0.75rem;
+      bottom: 0.75rem;
+      background: rgba(15, 23, 42, 0.8);
+      color: #e5e7eb;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      max-width: 270px;
+    }
+
+    .sidebar {
+      flex: 1;
+      min-width: 260px;
+      max-width: 380px;
+      border-left: 1px solid #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .sidebar-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .sidebar-sub {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .sidebar-body {
+      flex: 1;
+      padding: 0.75rem 0.9rem;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .placeholder {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .link-list {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .link-item a {
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 0.8rem;
+      word-break: break-all;
+    }
+
+    .link-item a:hover {
+      text-decoration: underline;
+    }
+
+    .field-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.5rem;
+    }
+
+    .json-preview {
+      margin-top: 0.5rem;
+      font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
+        "Courier New", monospace;
+      font-size: 0.7rem;
+      background: #f8fafc;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid #e2e8f0;
+      max-height: 160px;
+      overflow: auto;
+      white-space: pre;
+    }
+
+    .sidebar-footer {
+      padding: 0.6rem 0.9rem;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      font-size: 0.78rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.375rem;
+      border: 1px solid #cbd5f5;
+      background: #ffffff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .btn.primary {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #ffffff;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        flex-direction: column;
+      }
+      .sidebar {
+        max-width: none;
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <div class="badge">HOA</div>
+      <div>
+        <div class="title-main">Fremont Oaks – Map Notes</div>
+        <div class="title-sub">Click areas or draw new ones, then download JSON.</div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button id="toggleDrawBtn" class="small-btn">
+        ✏️ Draw mode: OFF
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="map-panel">
+      <div id="mapContainer" class="map-container">
+        <!-- Your top-view map image in the repo -->
+        <img id="mapImage" src="map.png" alt="Fremont Oaks top view" />
+        <div class="map-overlay">
+          <svg id="overlaySvg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div id="drawHint" class="draw-hint" style="display:none;">
+          Draw mode: click on the map to add vertices. Click “Finish polygon” when done, or “Cancel”.
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div id="sidebarTitle" class="sidebar-title">No area selected</div>
+        <div id="sidebarSub" class="sidebar-sub">
+          Click an existing polygon, or enter draw mode to add a new one.
+        </div>
+      </div>
+
+      <div class="sidebar-body">
+        <div id="sidebarContent" class="placeholder">
+          Loaded polygons come from <code>polygons.json</code>. In draw mode you can sketch a new area,
+          provide a name + link, then download the updated JSON and commit it back into GitHub.
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="finishBtn" class="btn primary" disabled>✅ Finish polygon</button>
+        <button id="cancelBtn" class="btn" disabled>✖ Cancel</button>
+        <button id="downloadBtn" class="btn">⬇ Download JSON</button>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // --- Data/state ----------------------------------------------------
+    let polygons = []; // loaded from polygons.json
+    let selectedId = null;
+
+    let drawMode = false;
+    let currentPoints = []; // normalized points {x, y} for the polygon being drawn
+
+    const VIEWBOX_SIZE = 1000; // SVG coordinate space
+
+    // --- DOM refs ------------------------------------------------------
+    const overlaySvg = document.getElementById("overlaySvg");
+    const mapContainer = document.getElementById("mapContainer");
+    const drawHint = document.getElementById("drawHint");
+
+    const sidebarTitle = document.getElementById("sidebarTitle");
+    const sidebarSub = document.getElementById("sidebarSub");
+    const sidebarContent = document.getElementById("sidebarContent");
+
+    const toggleDrawBtn = document.getElementById("toggleDrawBtn");
+    const finishBtn = document.getElementById("finishBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    // --- Utility: load polygons.json -----------------------------------
+    async function loadPolygons() {
+      try {
+        const res = await fetch("polygons.json", { cache: "no-cache" });
+        if (!res.ok) {
+          console.warn("Could not load polygons.json:", res.status, res.statusText);
+          polygons = [];
+        } else {
+          polygons = await res.json();
+        }
+      } catch (err) {
+        console.error("Error loading polygons.json:", err);
+        polygons = [];
+      }
+      renderPolygons();
+    }
+
+    // --- Coordinate helpers -------------------------------------------
+    function getNormalizedCoords(evt) {
+      const rect = mapContainer.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / rect.width;
+      const y = (evt.clientY - rect.top) / rect.height;
+      // clamp
+      return {
+        x: Math.min(Math.max(x, 0), 1),
+        y: Math.min(Math.max(y, 0), 1),
+      };
+    }
+
+    function pointsToSvg(points) {
+      return points
+        .map((p) => `${p.x * VIEWBOX_SIZE},${p.y * VIEWBOX_SIZE}`)
+        .join(" ");
+    }
+
+    // --- Rendering -----------------------------------------------------
+    function renderPolygons() {
+      overlaySvg.innerHTML = "";
+
+      // existing polygons
+      polygons.forEach((poly) => {
+        const elem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        elem.setAttribute("points", pointsToSvg(poly.polygon || []));
+        elem.setAttribute("class", "area-polygon" + (poly.id === selectedId ? " selected" : ""));
+        elem.addEventListener("click", (evt) => {
+          evt.stopPropagation();
+          if (drawMode) return; // ignore clicks while drawing
+          selectedId = poly.id;
+          updateSidebar();
+          renderPolygons();
+        });
+        overlaySvg.appendChild(elem);
+      });
+
+      // in-progress polygon (draw mode)
+      if (drawMode && currentPoints.length > 1) {
+        const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        temp.setAttribute("points", pointsToSvg(currentPoints));
+        temp.setAttribute("class", "temp-polygon");
+        overlaySvg.appendChild(temp);
+      }
+    }
+
+    function updateSidebar() {
+      if (!selectedId) {
+        sidebarTitle.textContent = "No area selected";
+        sidebarSub.textContent = drawMode
+          ? "Click on the map to add vertices for a new polygon."
+          : "Click an existing polygon, or enter draw mode to add a new one.";
+        sidebarContent.className = "placeholder";
+        sidebarContent.innerHTML =
+          'Loaded polygons come from <code>polygons.json</code>. In draw mode you can sketch a new area, ' +
+          "provide a name + link, then download the updated JSON and commit it back into GitHub.";
+        return;
+      }
+
+      const poly = polygons.find((p) => p.id === selectedId);
+      if (!poly) {
+        selectedId = null;
+        updateSidebar();
+        return;
+      }
+
+      sidebarTitle.textContent = poly.name || "(Unnamed area)";
+      sidebarSub.textContent = poly.notes || "Polygon ID: " + poly.id;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "";
+
+      const links = poly.links || [];
+      if (links.length > 0) {
+        const label = document.createElement("div");
+        label.className = "field-label";
+        label.textContent = "Links (PDFs / photos):";
+        wrapper.appendChild(label);
+
+        const list = document.createElement("div");
+        list.className = "link-list";
+        links.forEach((link) => {
+          const item = document.createElement("div");
+          item.className = "link-item";
+          const a = document.createElement("a");
+          a.href = link.url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = link.label || link.url;
+          item.appendChild(a);
+          list.appendChild(item);
+        });
+        wrapper.appendChild(list);
+      } else {
+        const noLinks = document.createElement("div");
+        noLinks.className = "field-label";
+        noLinks.textContent = "No links attached yet. Edit polygons.json to add more.";
+        wrapper.appendChild(noLinks);
+      }
+
+      const jsonLabel = document.createElement("div");
+      jsonLabel.className = "field-label";
+      jsonLabel.textContent = "Raw JSON for this area:";
+      wrapper.appendChild(jsonLabel);
+
+      const pre = document.createElement("pre");
+      pre.className = "json-preview";
+      pre.textContent = JSON.stringify(poly, null, 2);
+      wrapper.appendChild(pre);
+
+      sidebarContent.className = "";
+      sidebarContent.innerHTML = "";
+      sidebarContent.appendChild(wrapper);
+    }
+
+    // --- Draw mode -----------------------------------------------------
+    function setDrawMode(on) {
+      drawMode = on;
+      currentPoints = [];
+      selectedId = null;
+      renderPolygons();
+      updateSidebar();
+
+      if (drawMode) {
+        toggleDrawBtn.classList.add("active");
+        toggleDrawBtn.textContent = "✏️ Draw mode: ON";
+        drawHint.style.display = "block";
+        finishBtn.disabled = false;
+        cancelBtn.disabled = false;
+      } else {
+        toggleDrawBtn.classList.remove("active");
+        toggleDrawBtn.textContent = "✏️ Draw mode: OFF";
+        drawHint.style.display = "none";
+        finishBtn.disabled = true;
+        cancelBtn.disabled = true;
+      }
+    }
+
+    function addPoint(evt) {
+      if (!drawMode) return;
+      const norm = getNormalizedCoords(evt);
+      currentPoints.push(norm);
+      renderPolygons();
+    }
+
+    function finishPolygon() {
+      if (!drawMode) return;
+      if (currentPoints.length < 3) {
+        alert("You need at least 3 points to make a polygon.");
+        return;
+      }
+
+      const name = prompt("Name for this area:", "New area");
+      if (!name) {
+        const keep = confirm("No name entered. Keep the polygon anyway?");
+        if (!keep) {
+          currentPoints = [];
+          renderPolygons();
+          return;
+        }
+      }
+
+      const linkUrl = prompt("Optional: link URL (PDF/photo):", "");
+      let links = [];
+      if (linkUrl && linkUrl.trim()) {
+        const label = prompt("Link label (e.g. 'Roof report 2025'):", "Link");
+        links.push({
+          label: label || linkUrl,
+          url: linkUrl.trim(),
+        });
+      }
+
+      const id = "area-" + Date.now();
+      const newPoly = {
+        id,
+        name: name || "(Unnamed area)",
+        notes: "Added via draw mode",
+        links,
+        polygon: currentPoints.slice(),
+      };
+
+      polygons.push(newPoly);
+      currentPoints = [];
+      selectedId = id;
+      renderPolygons();
+      updateSidebar();
+
+      alert(
+        "Polygon added in memory. Use 'Download JSON' to save polygons.json and commit it to GitHub."
+      );
+    }
+
+    function cancelDrawing() {
+      if (!drawMode) return;
+      currentPoints = [];
+      renderPolygons();
+      updateSidebar();
+    }
+
+    // --- Download JSON -------------------------------------------------
+    function downloadJson() {
+      const blob = new Blob([JSON.stringify(polygons, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "polygons.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // --- Event wiring --------------------------------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPolygons();
+
+      toggleDrawBtn.addEventListener("click", () => {
+        setDrawMode(!drawMode);
+      });
+
+      mapContainer.addEventListener("click", (evt) => {
+        // If clicking inside the map and in draw mode, add a vertex.
+        if (!drawMode) return;
+        addPoint(evt);
+      });
+
+      finishBtn.addEventListener("click", () => {
+        finishPolygon();
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        cancelDrawing();
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        if (!polygons || polygons.length === 0) {
+          const proceed = confirm(
+            "No polygons loaded yet. Download an empty polygons.json file?"
+          );
+          if (!proceed) return;
+        }
+        downloadJson();
+      });
+    });
+  </script>
+</body>
+</html>

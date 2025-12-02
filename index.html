@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Fremont Oaks Map</title>
+  <title>Fremont Oaks Map – Monthly Activities</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <style>
@@ -83,6 +83,15 @@
       border-color: #1d4ed8;
     }
 
+    .month-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0f172a;
+    }
+
     main {
       flex: 1;
       display: flex;
@@ -131,11 +140,17 @@
       stroke-width: 2;
       cursor: pointer;
       pointer-events: auto;
+      transition: fill-opacity 0.15s ease, stroke-opacity 0.15s ease;
     }
 
     .area-polygon.selected {
       fill: rgba(59, 130, 246, 0.5);
       stroke: rgb(37, 99, 235);
+    }
+
+    .area-polygon.inactive {
+      fill-opacity: 0.12;
+      stroke-opacity: 0.25;
     }
 
     .temp-polygon {
@@ -150,7 +165,7 @@
       position: absolute;
       left: 0.75rem;
       bottom: 0.75rem;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       color: #e5e7eb;
       padding: 0.4rem 0.6rem;
       border-radius: 0.5rem;
@@ -196,42 +211,64 @@
       color: #64748b;
     }
 
-    .link-list {
-      margin-top: 0.4rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .link-item a {
-      color: #2563eb;
-      text-decoration: none;
-      font-size: 0.8rem;
-      word-break: break-all;
-    }
-
-    .link-item a:hover {
-      text-decoration: underline;
-    }
-
     .field-label {
       font-size: 0.75rem;
       color: #64748b;
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
     }
 
-    .json-preview {
-      margin-top: 0.5rem;
-      font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
-        "Courier New", monospace;
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
       font-size: 0.7rem;
-      background: #f8fafc;
+      border-radius: 999px;
+      padding: 0.15rem 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .status-pill.active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-pill.inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .link-messages {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .link-message {
       border-radius: 0.5rem;
-      padding: 0.4rem 0.5rem;
       border: 1px solid #e2e8f0;
-      max-height: 160px;
-      overflow: auto;
-      white-space: pre;
+      background: #f8fafc;
+      padding: 0.5rem 0.55rem;
+    }
+
+    .link-title {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+
+    .link-url {
+      font-size: 0.75rem;
+      word-break: break-all;
+    }
+
+    .link-url a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .link-url a:hover {
+      text-decoration: underline;
     }
 
     .sidebar-footer {
@@ -239,6 +276,7 @@
       border-top: 1px solid #e2e8f0;
       display: flex;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -281,14 +319,19 @@
     <div class="header-left">
       <div class="badge">HOA</div>
       <div>
-        <div class="title-main">Fremont Oaks – Map Notes</div>
-        <div class="title-sub">Click areas or draw new ones, then download JSON.</div>
+        <div class="title-main">Fremont Oaks – Monthly Activities</div>
+        <div class="title-sub">
+          Month-based focus: active boxes highlight, others fade.
+        </div>
       </div>
     </div>
 
     <div class="header-right">
+      <button id="prevMonthBtn" class="small-btn">◀</button>
+      <span id="monthLabel" class="month-label">Month</span>
+      <button id="nextMonthBtn" class="small-btn">▶</button>
       <button id="toggleDrawBtn" class="small-btn">
-        ✏️ Draw mode: OFF
+        ✏️ Draw: OFF
       </button>
     </div>
   </header>
@@ -296,13 +339,13 @@
   <main>
     <section class="map-panel">
       <div id="mapContainer" class="map-container">
-        <!-- Your top-view map image in the repo -->
         <img id="mapImage" src="map.png" alt="Fremont Oaks top view" />
         <div class="map-overlay">
           <svg id="overlaySvg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div id="drawHint" class="draw-hint" style="display:none;">
-          Draw mode: click on the map to add vertices. Click “Finish polygon” when done, or “Cancel”.
+          Draw mode (squares only): first click sets one corner, second click sets the opposite corner.
+          Then click “Finish square” to save (and later download JSON).
         </div>
       </div>
     </section>
@@ -311,19 +354,19 @@
       <div class="sidebar-header">
         <div id="sidebarTitle" class="sidebar-title">No area selected</div>
         <div id="sidebarSub" class="sidebar-sub">
-          Click an existing polygon, or enter draw mode to add a new one.
+          Choose a month above. Click a square or enter draw mode to add a new one.
         </div>
       </div>
 
       <div class="sidebar-body">
         <div id="sidebarContent" class="placeholder">
-          Loaded polygons come from <code>polygons.json</code>. In draw mode you can sketch a new area,
-          provide a name + link, then download the updated JSON and commit it back into GitHub.
+          Each box has a month range (from/to). For the selected month, active boxes are highlighted and
+          inactive boxes fade. One box can have multiple files/links, shown as separate messages.
         </div>
       </div>
 
       <div class="sidebar-footer">
-        <button id="finishBtn" class="btn primary" disabled>✅ Finish polygon</button>
+        <button id="finishBtn" class="btn primary" disabled>✅ Finish square</button>
         <button id="cancelBtn" class="btn" disabled>✖ Cancel</button>
         <button id="downloadBtn" class="btn">⬇ Download JSON</button>
       </div>
@@ -336,9 +379,10 @@
     let selectedId = null;
 
     let drawMode = false;
-    let currentPoints = []; // normalized points {x, y} for the polygon being drawn
+    let currentCorners = []; // up to 2 normalized points {x, y} for square
 
     const VIEWBOX_SIZE = 1000; // SVG coordinate space
+    let selectedMonthId = getCurrentMonthId(); // "YYYY-MM"
 
     // --- DOM refs ------------------------------------------------------
     const overlaySvg = document.getElementById("overlaySvg");
@@ -353,6 +397,62 @@
     const finishBtn = document.getElementById("finishBtn");
     const cancelBtn = document.getElementById("cancelBtn");
     const downloadBtn = document.getElementById("downloadBtn");
+
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
+    const monthLabel = document.getElementById("monthLabel");
+
+    // --- Month helpers -------------------------------------------------
+    function getCurrentMonthId() {
+      const d = new Date();
+      return (
+        d.getFullYear() +
+        "-" +
+        String(d.getMonth() + 1).padStart(2, "0")
+      ); // "YYYY-MM"
+    }
+
+    function monthIdToIndex(m) {
+      if (!m || typeof m !== "string" || !m.includes("-")) return null;
+      const [yStr, mmStr] = m.split("-");
+      const y = parseInt(yStr, 10);
+      const mm = parseInt(mmStr, 10);
+      if (isNaN(y) || isNaN(mm)) return null;
+      return y * 12 + (mm - 1); // 0-based month index
+    }
+
+    function isMonthInRange(selected, from, to) {
+      const selIdx = monthIdToIndex(selected);
+      if (selIdx === null) return true;
+
+      const fromIdx = monthIdToIndex(from);
+      const toIdx = monthIdToIndex(to);
+
+      if (fromIdx !== null && selIdx < fromIdx) return false;
+      if (toIdx !== null && selIdx > toIdx) return false;
+      return true;
+    }
+
+    function shiftMonthId(monthId, delta) {
+      const idx = monthIdToIndex(monthId);
+      if (idx === null) return monthId;
+      const newIdx = idx + delta;
+      const y = Math.floor(newIdx / 12);
+      const m = newIdx % 12;
+      return y + "-" + String(m + 1).padStart(2, "0");
+    }
+
+    function formatMonthLabel(monthId) {
+      const idx = monthIdToIndex(monthId);
+      if (idx === null) return monthId || "";
+      const y = Math.floor(idx / 12);
+      const m = (idx % 12) + 1;
+      const d = new Date(y, m - 1, 1);
+      return d.toLocaleString(undefined, {
+        month: "short",
+        year: "numeric",
+      });
+    }
 
     // --- Utility: load polygons.json -----------------------------------
     async function loadPolygons() {
@@ -369,6 +469,8 @@
         polygons = [];
       }
       renderPolygons();
+      updateSidebar();
+      updateMonthLabel();
     }
 
     // --- Coordinate helpers -------------------------------------------
@@ -376,11 +478,23 @@
       const rect = mapContainer.getBoundingClientRect();
       const x = (evt.clientX - rect.left) / rect.width;
       const y = (evt.clientY - rect.top) / rect.height;
-      // clamp
       return {
         x: Math.min(Math.max(x, 0), 1),
         y: Math.min(Math.max(y, 0), 1),
       };
+    }
+
+    function getSquareFromCorners(c1, c2) {
+      const x1 = Math.min(c1.x, c2.x);
+      const x2 = Math.max(c1.x, c2.x);
+      const y1 = Math.min(c1.y, c2.y);
+      const y2 = Math.max(c1.y, c2.y);
+      return [
+        { x: x1, y: y1 },
+        { x: x2, y: y1 },
+        { x: x2, y: y2 },
+        { x: x1, y: y2 },
+      ];
     }
 
     function pointsToSvg(points) {
@@ -393,40 +507,56 @@
     function renderPolygons() {
       overlaySvg.innerHTML = "";
 
-      // existing polygons
       polygons.forEach((poly) => {
+        const pts = poly.polygon || [];
         const elem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        elem.setAttribute("points", pointsToSvg(poly.polygon || []));
-        elem.setAttribute("class", "area-polygon" + (poly.id === selectedId ? " selected" : ""));
+        elem.setAttribute("points", pointsToSvg(pts));
+
+        const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
+        let cls = "area-polygon";
+        if (!active) cls += " inactive";
+        if (poly.id === selectedId) cls += " selected";
+        elem.setAttribute("class", cls);
+
         elem.addEventListener("click", (evt) => {
           evt.stopPropagation();
-          if (drawMode) return; // ignore clicks while drawing
+          if (drawMode) return;
           selectedId = poly.id;
           updateSidebar();
           renderPolygons();
         });
+
         overlaySvg.appendChild(elem);
       });
 
-      // in-progress polygon (draw mode)
-      if (drawMode && currentPoints.length > 1) {
+      // in-progress square
+      if (drawMode && currentCorners.length === 2) {
+        const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
         const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        temp.setAttribute("points", pointsToSvg(currentPoints));
+        temp.setAttribute("points", pointsToSvg(squarePoints));
         temp.setAttribute("class", "temp-polygon");
         overlaySvg.appendChild(temp);
       }
     }
 
+    function updateMonthLabel() {
+      monthLabel.textContent = formatMonthLabel(selectedMonthId);
+    }
+
     function updateSidebar() {
+      const monthText = formatMonthLabel(selectedMonthId);
+
       if (!selectedId) {
         sidebarTitle.textContent = "No area selected";
-        sidebarSub.textContent = drawMode
-          ? "Click on the map to add vertices for a new polygon."
-          : "Click an existing polygon, or enter draw mode to add a new one.";
+        sidebarSub.textContent =
+          "Viewing: " +
+          monthText +
+          ". Click a highlighted box to see its links, or draw a new one.";
         sidebarContent.className = "placeholder";
         sidebarContent.innerHTML =
-          'Loaded polygons come from <code>polygons.json</code>. In draw mode you can sketch a new area, ' +
-          "provide a name + link, then download the updated JSON and commit it back into GitHub.";
+          "Each box has a from/to month (e.g. 2025-01 to 2025-03). " +
+          "For the selected month, active boxes are highlighted and inactive ones fade. " +
+          "One box can have multiple links/files shown as separate messages.";
         return;
       }
 
@@ -437,135 +567,176 @@
         return;
       }
 
+      const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
+      const fromLabel = poly.from_month ? formatMonthLabel(poly.from_month) : "N/A";
+      const toLabel = poly.to_month ? formatMonthLabel(poly.to_month) : "N/A";
+
       sidebarTitle.textContent = poly.name || "(Unnamed area)";
-      sidebarSub.textContent = poly.notes || "Polygon ID: " + poly.id;
+      sidebarSub.textContent = "Active range: " + fromLabel + " → " + toLabel;
 
       const wrapper = document.createElement("div");
-      wrapper.className = "";
+
+      // status pill
+      const status = document.createElement("div");
+      status.className = "status-pill " + (active ? "active" : "inactive");
+      status.textContent = active
+        ? "Active this month (" + monthText + ")"
+        : "Not active in " + monthText;
+      wrapper.appendChild(status);
 
       const links = poly.links || [];
+
       if (links.length > 0) {
         const label = document.createElement("div");
         label.className = "field-label";
-        label.textContent = "Links (PDFs / photos):";
+        label.textContent = "Items for this box:";
         wrapper.appendChild(label);
 
         const list = document.createElement("div");
-        list.className = "link-list";
+        list.className = "link-messages";
+
         links.forEach((link) => {
-          const item = document.createElement("div");
-          item.className = "link-item";
+          const card = document.createElement("div");
+          card.className = "link-message";
+
+          const title = document.createElement("div");
+          title.className = "link-title";
+          title.textContent = link.label || "Item";
+
+          const urlDiv = document.createElement("div");
+          urlDiv.className = "link-url";
+
           const a = document.createElement("a");
           a.href = link.url;
           a.target = "_blank";
           a.rel = "noopener noreferrer";
-          a.textContent = link.label || link.url;
-          item.appendChild(a);
-          list.appendChild(item);
+          a.textContent = link.url;
+
+          urlDiv.appendChild(a);
+          card.appendChild(title);
+          card.appendChild(urlDiv);
+          list.appendChild(card);
         });
+
         wrapper.appendChild(list);
       } else {
         const noLinks = document.createElement("div");
         noLinks.className = "field-label";
-        noLinks.textContent = "No links attached yet. Edit polygons.json to add more.";
+        noLinks.textContent =
+          "No links/files added yet. Edit polygons.json to add multiple items.";
         wrapper.appendChild(noLinks);
       }
-
-      const jsonLabel = document.createElement("div");
-      jsonLabel.className = "field-label";
-      jsonLabel.textContent = "Raw JSON for this area:";
-      wrapper.appendChild(jsonLabel);
-
-      const pre = document.createElement("pre");
-      pre.className = "json-preview";
-      pre.textContent = JSON.stringify(poly, null, 2);
-      wrapper.appendChild(pre);
 
       sidebarContent.className = "";
       sidebarContent.innerHTML = "";
       sidebarContent.appendChild(wrapper);
     }
 
-    // --- Draw mode -----------------------------------------------------
+    // --- Draw mode (squares only) -------------------------------------
     function setDrawMode(on) {
       drawMode = on;
-      currentPoints = [];
+      currentCorners = [];
       selectedId = null;
       renderPolygons();
       updateSidebar();
 
       if (drawMode) {
         toggleDrawBtn.classList.add("active");
-        toggleDrawBtn.textContent = "✏️ Draw mode: ON";
+        toggleDrawBtn.textContent = "✏️ Draw: ON";
         drawHint.style.display = "block";
         finishBtn.disabled = false;
         cancelBtn.disabled = false;
       } else {
         toggleDrawBtn.classList.remove("active");
-        toggleDrawBtn.textContent = "✏️ Draw mode: OFF";
+        toggleDrawBtn.textContent = "✏️ Draw: OFF";
         drawHint.style.display = "none";
         finishBtn.disabled = true;
         cancelBtn.disabled = true;
       }
     }
 
-    function addPoint(evt) {
+    function handleMapClick(evt) {
       if (!drawMode) return;
       const norm = getNormalizedCoords(evt);
-      currentPoints.push(norm);
+
+      if (currentCorners.length === 0) {
+        // First corner
+        currentCorners.push(norm);
+      } else if (currentCorners.length === 1) {
+        // Second corner
+        currentCorners.push(norm);
+      } else {
+        // Already have two; reset and start new
+        currentCorners = [norm];
+      }
       renderPolygons();
     }
 
-    function finishPolygon() {
+    function finishSquare() {
       if (!drawMode) return;
-      if (currentPoints.length < 3) {
-        alert("You need at least 3 points to make a polygon.");
+      if (currentCorners.length < 2) {
+        alert("Click twice on the map (two opposite corners) to define a square.");
         return;
       }
 
-      const name = prompt("Name for this area:", "New area");
-      if (!name) {
-        const keep = confirm("No name entered. Keep the polygon anyway?");
-        if (!keep) {
-          currentPoints = [];
-          renderPolygons();
-          return;
-        }
+      const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
+
+      const name = prompt("Name for this area (box):", "New area");
+      if (name === null) {
+        return;
       }
 
-      const linkUrl = prompt("Optional: link URL (PDF/photo):", "");
+      const fromDefault = selectedMonthId;
+      const toDefault = selectedMonthId;
+      const fromMonth = prompt(
+        'From month (YYYY-MM), e.g. "2025-01":',
+        fromDefault
+      );
+      if (fromMonth === null) return;
+
+      const toMonth = prompt(
+        'To month (YYYY-MM), e.g. "2025-03":',
+        toDefault
+      );
+      if (toMonth === null) return;
+
+      const linkUrl = prompt("Optional: first link URL (PDF/photo):", "");
       let links = [];
       if (linkUrl && linkUrl.trim()) {
-        const label = prompt("Link label (e.g. 'Roof report 2025'):", "Link");
+        const label = prompt(
+          'Link label (e.g. "Roof report Jan 2025"):',
+          "Item"
+        );
         links.push({
-          label: label || linkUrl,
+          label: label || "Item",
           url: linkUrl.trim(),
         });
       }
 
-      const id = "area-" + Date.now();
+      const id = "box-" + Date.now();
       const newPoly = {
         id,
         name: name || "(Unnamed area)",
-        notes: "Added via draw mode",
+        from_month: fromMonth || null,
+        to_month: toMonth || null,
         links,
-        polygon: currentPoints.slice(),
+        polygon: squarePoints,
       };
 
       polygons.push(newPoly);
-      currentPoints = [];
+      currentCorners = [];
       selectedId = id;
       renderPolygons();
       updateSidebar();
 
       alert(
-        "Polygon added in memory. Use 'Download JSON' to save polygons.json and commit it to GitHub."
+        "Box added in memory. Use 'Download JSON' to save polygons.json and commit it to GitHub."
       );
     }
 
     function cancelDrawing() {
       if (!drawMode) return;
-      currentPoints = [];
+      currentCorners = [];
       renderPolygons();
       updateSidebar();
     }
@@ -585,6 +756,14 @@
       URL.revokeObjectURL(url);
     }
 
+    // --- Month nav handlers -------------------------------------------
+    function setSelectedMonth(monthId) {
+      selectedMonthId = monthId;
+      updateMonthLabel();
+      renderPolygons();
+      updateSidebar();
+    }
+
     // --- Event wiring --------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
       loadPolygons();
@@ -594,13 +773,11 @@
       });
 
       mapContainer.addEventListener("click", (evt) => {
-        // If clicking inside the map and in draw mode, add a vertex.
-        if (!drawMode) return;
-        addPoint(evt);
+        handleMapClick(evt);
       });
 
       finishBtn.addEventListener("click", () => {
-        finishPolygon();
+        finishSquare();
       });
 
       cancelBtn.addEventListener("click", () => {
@@ -616,6 +793,17 @@
         }
         downloadJson();
       });
+
+      prevMonthBtn.addEventListener("click", () => {
+        setSelectedMonth(shiftMonthId(selectedMonthId, -1));
+      });
+
+      nextMonthBtn.addEventListener("click", () => {
+        setSelectedMonth(shiftMonthId(selectedMonthId, 1));
+      });
+
+      // Initial label
+      updateMonthLabel();
     });
   </script>
 </body>

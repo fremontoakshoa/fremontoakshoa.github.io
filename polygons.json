@@ -1,12 +1,17 @@
 [
   {
-    "id": "area-1",
+    "id": "box-1",
     "name": "Example Building A",
-    "notes": "Example polygon. Move/edit in polygons.json.",
+    "from_month": "2025-01",
+    "to_month": "2025-03",
     "links": [
       {
-        "label": "Sample PDF",
-        "url": "https://example.com/sample.pdf"
+        "label": "Roof inspection report",
+        "url": "https://example.com/building-a-roof-report.pdf"
+      },
+      {
+        "label": "Painting photos",
+        "url": "https://example.com/building-a-painting-photos"
       }
     ],
     "polygon": [
@@ -17,19 +22,24 @@
     ]
   },
   {
-    "id": "area-2",
+    "id": "box-2",
     "name": "Example Pool Area",
-    "notes": "Another demo polygon.",
+    "from_month": "2025-04",
+    "to_month": "2025-09",
     "links": [
       {
-        "label": "Maintenance photos",
-        "url": "https://example.com/pool-photos"
+        "label": "Pool maintenance log",
+        "url": "https://example.com/pool-maintenance-log"
+      },
+      {
+        "label": "Pool rules PDF",
+        "url": "https://example.com/pool-rules.pdf"
       }
     ],
     "polygon": [
       { "x": 0.55, "y": 0.6 },
-      { "x": 0.68, "y": 0.6 },
-      { "x": 0.68, "y": 0.75 },
+      { "x": 0.7, "y": 0.6 },
+      { "x": 0.7, "y": 0.75 },
       { "x": 0.55, "y": 0.75 }
     ]
   }

@@ -1278,12 +1278,31 @@ function renderFinances() {
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("viewBox", "0 0 100 100");
 
+    // draw zero line at y = 50
+    const axis = document.createElementNS(svgNS, "line");
+    axis.setAttribute("x1", "5");
+    axis.setAttribute("x2", "95");
+    axis.setAttribute("y1", "50");
+    axis.setAttribute("y2", "50");
+    axis.setAttribute("stroke", "#9ca3af");
+    axis.setAttribute("stroke-width", "0.5");
+    svg.appendChild(axis);
+
     values.forEach((cat, idx) => {
       const barWidth = 14;
       const gap = 4;
       const x = 10 + idx * (barWidth + gap);
-      const height = (Math.abs(cat.value) / maxVal) * 60;
-      const y = 80 - height;
+
+      const height = (Math.abs(cat.value) / maxVal) * 40; // smaller so it fits above/below
+      const baseY = 50; // zero line
+      let y;
+      if (cat.value >= 0) {
+        // positive: bar goes up from zero
+        y = baseY - height;
+      } else {
+        // negative: bar goes down from zero
+        y = baseY;
+      }
 
       const rect = document.createElementNS(svgNS, "rect");
       rect.setAttribute("x", String(x));
@@ -1292,21 +1311,21 @@ function renderFinances() {
       rect.setAttribute("height", String(height));
       rect.setAttribute(
         "fill",
-        idx % 2 === 0 ? "#60a5fa" : "#9ca3af"
+        cat.value >= 0 ? "#60a5fa" : "#f97373" // blue for +, red-ish for -
       );
 
-      // click handler to show details
       rect.addEventListener("click", () => showChartInfo(cat));
       svg.appendChild(rect);
 
       const label = document.createElementNS(svgNS, "text");
       label.setAttribute("x", String(x + barWidth / 2));
-      label.setAttribute("y", "90");
+      label.setAttribute("y", "95");
       label.setAttribute("text-anchor", "middle");
       label.setAttribute("font-size", "5");
       label.textContent = cat.label;
       svg.appendChild(label);
     });
+
 
     finChart.appendChild(svg);
   } else {

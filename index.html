@@ -591,7 +591,8 @@
       </div>
     </div>
   </main>
-
+  
+  
 <script>
   // --- Data/state ----------------------------------------------------
   let polygons = []; // operations boxes (areas)
@@ -640,9 +641,7 @@
   function getCurrentMonthId() {
     const d = new Date();
     return (
-      d.getFullYear() +
-      "-" +
-      String(d.getMonth() + 1).padStart(2, "0")
+      d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0")
     );
   }
 
@@ -722,10 +721,10 @@
   }
 
   // --- Coordinate helpers -------------------------------------------
-  function getNormalizedCoords(evt) {
+  function getNormalizedCoordsFromXY(clientX, clientY) {
     const rect = overlaySvg.getBoundingClientRect();
-    const x = (evt.clientX - rect.left) / rect.width;
-    const y = (evt.clientY - rect.top) / rect.height;
+    const x = (clientX - rect.left) / rect.width;
+    const y = (clientY - rect.top) / rect.height;
     return {
       x: Math.min(Math.max(x, 0), 1),
       y: Math.min(Math.max(y, 0), 1),
@@ -757,10 +756,17 @@
 
     polygons.forEach((poly) => {
       const pts = poly.polygon || [];
-      const elem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      const elem = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "polygon"
+      );
       elem.setAttribute("points", pointsToSvg(pts));
 
-      const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
+      const active = isMonthInRange(
+        selectedMonthId,
+        poly.from_month,
+        poly.to_month
+      );
       let cls = "area-polygon";
       if (!active) cls += " inactive";
       if (poly.id === selectedId) cls += " selected";
@@ -779,8 +785,14 @@
 
     // temp square while dragging
     if (drawMode && currentCorners.length === 2) {
-      const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
-      const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      const squarePoints = getSquareFromCorners(
+        currentCorners[0],
+        currentCorners[1]
+      );
+      const temp = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "polygon"
+      );
       temp.setAttribute("points", pointsToSvg(squarePoints));
       temp.setAttribute("class", "temp-polygon");
       overlaySvg.appendChild(temp);
@@ -790,7 +802,8 @@
   function updateMonthLabel() {
     monthLabel.textContent = formatMonthLabel(selectedMonthId);
     if (finMonthLabel) {
-      finMonthLabel.textContent = "Month: " + formatMonthLabel(selectedMonthId);
+      finMonthLabel.textContent =
+        "Month: " + formatMonthLabel(selectedMonthId);
     }
   }
 
@@ -818,8 +831,14 @@
       return;
     }
 
-    const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
-    const fromLabel = poly.from_month ? formatMonthLabel(poly.from_month) : "N/A";
+    const active = isMonthInRange(
+      selectedMonthId,
+      poly.from_month,
+      poly.to_month
+    );
+    const fromLabel = poly.from_month
+      ? formatMonthLabel(poly.from_month)
+      : "N/A";
     const toLabel = poly.to_month ? formatMonthLabel(poly.to_month) : "N/A";
 
     sidebarTitle.textContent = poly.name || "(Unnamed area)";
@@ -901,7 +920,7 @@
       toggleDrawBtn.textContent = "✏️ Draw: ON";
       drawHint.style.display = "block";
 
-      // keep these effectively disabled now
+      // keep these effectively disabled
       finishBtn.disabled = true;
       cancelBtn.disabled = true;
     } else {
@@ -913,17 +932,18 @@
     }
   }
 
+  // --- Mouse drawing --------------------------------------------------
   function handleMouseDown(evt) {
     if (!drawMode) return;
     isDragging = true;
-    const norm = getNormalizedCoords(evt);
+    const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     currentCorners = [norm, norm];
     renderPolygons();
   }
 
   function handleMouseMove(evt) {
     if (!drawMode || !isDragging || currentCorners.length === 0) return;
-    const norm = getNormalizedCoords(evt);
+    const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     currentCorners[1] = norm;
     renderPolygons();
   }
@@ -931,17 +951,81 @@
   function handleMouseUp(evt) {
     if (!drawMode || !isDragging) return;
     isDragging = false;
-    const norm = getNormalizedCoords(evt);
+    const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     if (currentCorners.length === 1) {
       currentCorners[1] = norm;
     } else {
       currentCorners[1] = norm;
     }
 
-    // if the box is too tiny, ignore (probably a click, not a drag)
+    finalizeBoxIfBigEnough();
+  }
+
+  function handleMouseLeave() {
+    if (!drawMode) return;
+    isDragging = false;
+  }
+
+  // --- Touch drawing (mobile) ----------------------------------------
+  function handleTouchStart(evt) {
+    if (!drawMode) return;
+    if (evt.touches.length === 0) return;
+    evt.preventDefault();
+    const t = evt.touches[0];
+    isDragging = true;
+    const norm = getNormalizedCoordsFromXY(t.clientX, t.clientY);
+    currentCorners = [norm, norm];
+    renderPolygons();
+  }
+
+  function handleTouchMove(evt) {
+    if (!drawMode || !isDragging || currentCorners.length === 0) return;
+    if (evt.touches.length === 0) return;
+    evt.preventDefault();
+    const t = evt.touches[0];
+    const norm = getNormalizedCoordsFromXY(t.clientX, t.clientY);
+    currentCorners[1] = norm;
+    renderPolygons();
+  }
+
+  function handleTouchEnd(evt) {
+    if (!drawMode || !isDragging) return;
+    evt.preventDefault();
+    isDragging = false;
+
+    const t =
+      evt.changedTouches && evt.changedTouches[0]
+        ? evt.changedTouches[0]
+        : null;
+    if (t) {
+      const norm = getNormalizedCoordsFromXY(t.clientX, t.clientY);
+      if (currentCorners.length === 1) {
+        currentCorners[1] = norm;
+      } else {
+        currentCorners[1] = norm;
+      }
+    }
+
+    finalizeBoxIfBigEnough();
+  }
+
+  function handleTouchCancel() {
+    if (!drawMode) return;
+    isDragging = false;
+  }
+
+  // --- Common: finalize drawn box ------------------------------------
+  function finalizeBoxIfBigEnough() {
+    if (currentCorners.length < 2) {
+      currentCorners = [];
+      renderPolygons();
+      return;
+    }
+
     const dx = Math.abs(currentCorners[1].x - currentCorners[0].x);
     const dy = Math.abs(currentCorners[1].y - currentCorners[0].y);
     if (dx < 0.005 || dy < 0.005) {
+      // too tiny, treat as accidental tap
       currentCorners = [];
       renderPolygons();
       return;
@@ -951,15 +1035,13 @@
     commitSquareFromCorners();
   }
 
-  function handleMouseLeave() {
-    if (!drawMode) return;
-    isDragging = false;
-  }
-
   function commitSquareFromCorners() {
     if (currentCorners.length < 2) return;
 
-    const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
+    const squarePoints = getSquareFromCorners(
+      currentCorners[0],
+      currentCorners[1]
+    );
 
     const name = prompt("Name for this area (box):", "New area");
     if (name === null) {
@@ -1102,7 +1184,8 @@
     } else {
       const span = document.createElement("span");
       span.className = "fin-placeholder";
-      span.textContent = "No data for this month yet. Add entries in finances.json.";
+      span.textContent =
+        "No data for this month yet. Add entries in finances.json.";
       finChart.appendChild(span);
     }
 
@@ -1192,12 +1275,27 @@
       setDrawMode(!drawMode);
     });
 
+    // Mouse events
     mapContainer.addEventListener("mousedown", handleMouseDown);
     mapContainer.addEventListener("mousemove", handleMouseMove);
     mapContainer.addEventListener("mouseup", handleMouseUp);
     mapContainer.addEventListener("mouseleave", handleMouseLeave);
 
-    // Finish / Cancel buttons kept but effectively unused now
+    // Touch events (mobile)
+    mapContainer.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    mapContainer.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
+    mapContainer.addEventListener("touchend", handleTouchEnd, {
+      passive: false,
+    });
+    mapContainer.addEventListener("touchcancel", handleTouchCancel, {
+      passive: false,
+    });
+
+    // Finish / Cancel buttons unused for now
     finishBtn.disabled = true;
     cancelBtn.disabled = true;
 

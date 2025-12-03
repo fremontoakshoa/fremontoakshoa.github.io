@@ -473,6 +473,15 @@
         border-top: 1px solid #e2e8f0;
       }
     }
+
+    .var-positive {
+      color: #15803d; /* green */
+    }
+
+    .var-negative {
+      color: #b91c1c; /* red */
+    }
+
   </style>
 </head>
 <body>
@@ -555,8 +564,10 @@
           <div>
             <div class="fin-title">Finances</div>
             <div class="fin-sub">
-              Month-based reserves & expenses loaded from <code>finances.json</code>.
+              Month-based operating & reserve statements loaded from
+              <code>finances/MM_YYYY_finance.json</code>.
             </div>
+
           </div>
           <div class="fin-current-row">
             <div id="finMonthLabel" class="fin-pill">Month: –</div>
@@ -574,9 +585,12 @@
           <table>
             <thead>
               <tr>
-                <th>Month</th>
-                <th>Reserves</th>
-                <th>Expenses</th>
+                <th>Group</th>
+                <th>Account</th>
+                <th>Actual</th>
+                <th>Budget</th>
+                <th>Variance</th>
+                <th>Annual Budget</th>
               </tr>
             </thead>
             <tbody id="finTableBody">
@@ -606,7 +620,10 @@
   let selectedMonthId = getCurrentMonthId(); // "YYYY-MM"
 
   let activeTab = "operations"; // "operations" | "finances"
-  let finances = []; // loaded from finances.json
+
+  // finances: per-month file, cached
+  let finances = null;                 // current month finance object
+  const financesCache = {};            // monthId -> finance object or null
 
   // --- DOM refs ------------------------------------------------------
   const overlaySvg = document.getElementById("overlaySvg");
@@ -687,7 +704,7 @@
     });
   }
 
-  // --- Load data -----------------------------------------------------
+  // --- Load polygons -------------------------------------------------
   async function loadPolygons() {
     try {
       const res = await fetch("polygons.json", { cache: "no-cache" });
@@ -705,18 +722,34 @@
     updateMonthLabel();
   }
 
-  async function loadFinances() {
+  // --- Load finances for a specific month ----------------------------
+  async function loadFinancesForMonth(monthId) {
+    // cache hit?
+    if (financesCache[monthId] !== undefined) {
+      finances = financesCache[monthId];
+      renderFinances();
+      return;
+    }
+
+    const [year, mm] = monthId.split("-");
+    const fileName = `${mm}_${year}_finance.json`; // e.g. 11_2025_finance.json
+    const url = `finances/${fileName}`;
+
     try {
-      const res = await fetch("finances.json", { cache: "no-cache" });
+      const res = await fetch(url, { cache: "no-cache" });
       if (res.ok) {
-        finances = await res.json();
+        const data = await res.json();
+        financesCache[monthId] = data;
       } else {
-        finances = [];
+        console.warn("No finances file for", monthId, "status:", res.status);
+        financesCache[monthId] = null;
       }
     } catch (err) {
-      console.error("Error loading finances.json:", err);
-      finances = [];
+      console.error("Error loading", url, err);
+      financesCache[monthId] = null;
     }
+
+    finances = financesCache[monthId];
     renderFinances();
   }
 
@@ -919,8 +952,6 @@
       toggleDrawBtn.classList.add("active");
       toggleDrawBtn.textContent = "✏️ Draw: ON";
       drawHint.style.display = "block";
-
-      // keep these effectively disabled
       finishBtn.disabled = true;
       cancelBtn.disabled = true;
     } else {
@@ -932,9 +963,10 @@
     }
   }
 
-  // --- Mouse drawing --------------------------------------------------
+  // --- Mouse drawing (desktop) ---------------------------------------
   function handleMouseDown(evt) {
     if (!drawMode) return;
+    evt.preventDefault();            // stop image drag
     isDragging = true;
     const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     currentCorners = [norm, norm];
@@ -943,6 +975,7 @@
 
   function handleMouseMove(evt) {
     if (!drawMode || !isDragging || currentCorners.length === 0) return;
+    evt.preventDefault();
     const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     currentCorners[1] = norm;
     renderPolygons();
@@ -950,6 +983,7 @@
 
   function handleMouseUp(evt) {
     if (!drawMode || !isDragging) return;
+    evt.preventDefault();
     isDragging = false;
     const norm = getNormalizedCoordsFromXY(evt.clientX, evt.clientY);
     if (currentCorners.length === 1) {
@@ -957,7 +991,6 @@
     } else {
       currentCorners[1] = norm;
     }
-
     finalizeBoxIfBigEnough();
   }
 
@@ -1129,38 +1162,76 @@
     URL.revokeObjectURL(url);
   }
 
-  // --- Finances rendering -------------------------------------------
+  // --- Finances rendering --------------------------------------------
   function renderFinances() {
-    const current =
-      finances.find((f) => f.month === selectedMonthId) || null;
+    finChart.innerHTML = "";
+    finTableBody.innerHTML = "";
 
-    if (current) {
+    if (!finances) {
       finCurrentNumbers.textContent =
-        "Reserves: " +
-        formatCurrency(current.reserves) +
-        " • Expenses: " +
-        formatCurrency(current.expenses);
-    } else {
-      finCurrentNumbers.textContent = "Reserves: – • Expenses: –";
+        "No finance file for this month.";
+      const span = document.createElement("span");
+      span.className = "fin-placeholder";
+      span.textContent =
+        "Place a file like finances/MM_YYYY_finance.json for this month.";
+      finChart.appendChild(span);
+      return;
     }
 
-    finChart.innerHTML = "";
-    if (current) {
-      const maxVal = Math.max(current.reserves, current.expenses, 1);
+    const opNet = finances.operating?.totals?.net_income || null;
+    const resNet = finances.reserve?.totals?.net_reserve || null;
+
+    // summary pill: net operating & net reserve with variance colored
+    const opVar = opNet ? opNet.variance : 0;
+    const resVar = resNet ? resNet.variance : 0;
+
+    const opVarSpan = document.createElement("span");
+    opVarSpan.textContent =
+      "Op net: " + (opNet ? formatCurrency(opNet.actual) : "–") +
+      " (var " + (opNet ? formatSignedCurrency(opNet.variance) : "–") + ")";
+    if (opNet && opNet.variance > 0) opVarSpan.className = "var-positive";
+    else if (opNet && opNet.variance < 0) opVarSpan.className = "var-negative";
+
+    const resVarSpan = document.createElement("span");
+    resVarSpan.textContent =
+      " • Res net: " + (resNet ? formatCurrency(resNet.actual) : "–") +
+      " (var " + (resNet ? formatSignedCurrency(resNet.variance) : "–") + ")";
+    if (resNet && resNet.variance > 0) resVarSpan.className = "var-positive";
+    else if (resNet && resNet.variance < 0) resVarSpan.className = "var-negative";
+
+    finCurrentNumbers.innerHTML = "";
+    finCurrentNumbers.appendChild(opVarSpan);
+    finCurrentNumbers.appendChild(resVarSpan);
+
+    // chart: Op net vs budget, Res net vs budget
+    const values = [];
+    if (opNet) {
+      values.push(
+        { label: "Op Net", value: opNet.actual },
+        { label: "Op Bud", value: opNet.budget }
+      );
+    }
+    if (resNet) {
+      values.push(
+        { label: "Res Net", value: resNet.actual },
+        { label: "Res Bud", value: resNet.budget }
+      );
+    }
+
+    if (values.length > 0) {
+      const maxVal = Math.max(
+        ...values.map((v) => Math.abs(v.value)),
+        1
+      );
       const svgNS = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("viewBox", "0 0 100 100");
 
-      const categories = [
-        { label: "Reserves", value: current.reserves },
-        { label: "Expenses", value: current.expenses },
-      ];
-
-      categories.forEach((cat, idx) => {
-        const barWidth = 20;
-        const gap = 10;
-        const x = 15 + idx * (barWidth + gap);
-        const height = (cat.value / maxVal) * 60;
+      values.forEach((cat, idx) => {
+        const barWidth = 14;
+        const gap = 4;
+        const x = 10 + idx * (barWidth + gap);
+        const height = (Math.abs(cat.value) / maxVal) * 60;
         const y = 80 - height;
 
         const rect = document.createElementNS(svgNS, "rect");
@@ -1168,14 +1239,17 @@
         rect.setAttribute("y", String(y));
         rect.setAttribute("width", String(barWidth));
         rect.setAttribute("height", String(height));
-        rect.setAttribute("fill", idx === 0 ? "#4ade80" : "#f97316");
+        rect.setAttribute(
+          "fill",
+          idx % 2 === 0 ? "#60a5fa" : "#9ca3af"
+        );
         svg.appendChild(rect);
 
         const label = document.createElementNS(svgNS, "text");
         label.setAttribute("x", String(x + barWidth / 2));
         label.setAttribute("y", "90");
         label.setAttribute("text-anchor", "middle");
-        label.setAttribute("font-size", "6");
+        label.setAttribute("font-size", "5");
         label.textContent = cat.label;
         svg.appendChild(label);
       });
@@ -1184,46 +1258,152 @@
     } else {
       const span = document.createElement("span");
       span.className = "fin-placeholder";
-      span.textContent =
-        "No data for this month yet. Add entries in finances.json.";
+      span.textContent = "No summary data for this month.";
       finChart.appendChild(span);
     }
 
-    finTableBody.innerHTML = "";
-    if (!finances || finances.length === 0) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 3;
-      td.className = "fin-placeholder";
-      td.textContent = "No data. Add entries in finances.json.";
-      tr.appendChild(td);
-      finTableBody.appendChild(tr);
-      return;
+    // table: all sections/accounts with variance colored
+    renderFinanceSections();
+  }
+
+  function humanizeKey(key) {
+    return key
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function addFinanceRow(group, label, data, isTotal = false) {
+    if (!data) return;
+    const tr = document.createElement("tr");
+    if (isTotal) {
+      tr.style.fontWeight = "600";
+      tr.style.background = "#f9fafb";
     }
 
-    finances
-      .slice()
-      .sort((a, b) => monthIdToIndex(a.month) - monthIdToIndex(b.month))
-      .forEach((row) => {
-        const tr = document.createElement("tr");
-        if (row.month === selectedMonthId) {
-          tr.className = "highlight-row";
-        }
+    const tdGroup = document.createElement("td");
+    tdGroup.textContent = group;
+    tr.appendChild(tdGroup);
 
-        const tdMonth = document.createElement("td");
-        tdMonth.textContent = formatMonthLabel(row.month);
-        tr.appendChild(tdMonth);
+    const tdLabel = document.createElement("td");
+    tdLabel.textContent = label;
+    tr.appendChild(tdLabel);
 
-        const tdRes = document.createElement("td");
-        tdRes.textContent = formatCurrency(row.reserves);
-        tr.appendChild(tdRes);
+    const tdActual = document.createElement("td");
+    tdActual.textContent = formatCurrency(data.actual);
+    tr.appendChild(tdActual);
 
-        const tdExp = document.createElement("td");
-        tdExp.textContent = formatCurrency(row.expenses);
-        tr.appendChild(tdExp);
+    const tdBudget = document.createElement("td");
+    tdBudget.textContent = formatCurrency(data.budget);
+    tr.appendChild(tdBudget);
 
-        finTableBody.appendChild(tr);
+    const tdVar = document.createElement("td");
+    const span = document.createElement("span");
+    span.textContent = formatSignedCurrency(data.variance);
+    if (data.variance > 0) span.className = "var-positive";
+    else if (data.variance < 0) span.className = "var-negative";
+    tdVar.appendChild(span);
+    tr.appendChild(tdVar);
+
+    const tdAnn = document.createElement("td");
+    if (typeof data.annual_budget === "number") {
+      tdAnn.textContent = formatCurrency(data.annual_budget);
+    } else {
+      tdAnn.textContent = "–";
+    }
+    tr.appendChild(tdAnn);
+
+    finTableBody.appendChild(tr);
+  }
+
+  function renderFinanceSections() {
+    if (!finances) return;
+
+    // OPERATING sections
+    const op = finances.operating || {};
+    Object.keys(op).forEach((key) => {
+      if (key === "totals") return;
+      const section = op[key];
+      if (!section || !Array.isArray(section.accounts)) return;
+
+      section.accounts.forEach((acc) => {
+        addFinanceRow(
+          "Operating – " + humanizeKey(key),
+          `${acc.code} ${acc.description}`,
+          acc,
+          false
+        );
       });
+
+      if (section.totals) {
+        Object.entries(section.totals).forEach(([tKey, tVal]) => {
+          addFinanceRow(
+            "Operating – " + humanizeKey(key),
+            humanizeKey(tKey),
+            tVal,
+            true
+          );
+        });
+      }
+    });
+
+    if (op.totals) {
+      Object.entries(op.totals).forEach(([tKey, tVal]) => {
+        addFinanceRow("Operating Totals", humanizeKey(tKey), tVal, true);
+      });
+    }
+
+    // RESERVE sections
+    const rv = finances.reserve || {};
+
+    const income = rv.income || {};
+    if (Array.isArray(income.accounts)) {
+      income.accounts.forEach((acc) => {
+        addFinanceRow(
+          "Reserve – Income",
+          `${acc.code} ${acc.description}`,
+          acc,
+          false
+        );
+      });
+    }
+    if (income.totals) {
+      Object.entries(income.totals).forEach(([tKey, tVal]) => {
+        addFinanceRow(
+          "Reserve – Income",
+          humanizeKey(tKey),
+          tVal,
+          true
+        );
+      });
+    }
+
+    const exp = rv.expenses || {};
+    if (Array.isArray(exp.accounts)) {
+      exp.accounts.forEach((acc) => {
+        addFinanceRow(
+          "Reserve – Expense",
+          `${acc.code} ${acc.description}`,
+          acc,
+          false
+        );
+      });
+    }
+    if (exp.totals) {
+      Object.entries(exp.totals).forEach(([tKey, tVal]) => {
+        addFinanceRow(
+          "Reserve – Expense",
+          humanizeKey(tKey),
+          tVal,
+          true
+        );
+      });
+    }
+
+    if (rv.totals) {
+      Object.entries(rv.totals).forEach(([tKey, tVal]) => {
+        addFinanceRow("Reserve Totals", humanizeKey(tKey), tVal, true);
+      });
+    }
   }
 
   function formatCurrency(x) {
@@ -1231,8 +1411,20 @@
     return x.toLocaleString(undefined, {
       style: "currency",
       currency: "USD",
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     });
+  }
+
+  function formatSignedCurrency(x) {
+    if (typeof x !== "number") return "–";
+    const abs = Math.abs(x).toLocaleString(undefined, {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 2,
+    });
+    if (x > 0) return "+" + abs;
+    if (x < 0) return "-" + abs;
+    return abs;
   }
 
   // --- Tabs ----------------------------------------------------------
@@ -1250,9 +1442,10 @@
       tabOperations.classList.remove("active");
       tabFinances.classList.add("active");
       toggleDrawBtn.style.display = "none";
+      // ensure finances for this month are loaded
+      loadFinancesForMonth(selectedMonthId);
     }
     updateMonthLabel();
-    renderFinances();
     renderPolygons();
     updateSidebar();
   }
@@ -1263,17 +1456,20 @@
     updateMonthLabel();
     renderPolygons();
     updateSidebar();
-    renderFinances();
+    loadFinancesForMonth(selectedMonthId);
   }
 
   // --- Event wiring --------------------------------------------------
   document.addEventListener("DOMContentLoaded", () => {
     loadPolygons();
-    loadFinances();
+    loadFinancesForMonth(selectedMonthId);
 
     toggleDrawBtn.addEventListener("click", () => {
       setDrawMode(!drawMode);
     });
+
+    // prevent image drag interfering with mouse events
+    mapContainer.addEventListener("dragstart", (e) => e.preventDefault());
 
     // Mouse events
     mapContainer.addEventListener("mousedown", handleMouseDown);

@@ -1,0 +1,731 @@
+{
+  "month": "2025-11",
+  "operating": {
+    "income": {
+      "accounts": [
+        {
+          "code": "4000-00",
+          "description": "Assessment Income",
+          "actual": 1315320.0,
+          "budget": 1315325.2,
+          "variance": -5.2,
+          "annual_budget": 1578390.22
+        },
+        {
+          "code": "4005-00",
+          "description": "Late Fee Income",
+          "actual": 7478.16,
+          "budget": 0.0,
+          "variance": 7478.16,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4015-00",
+          "description": "Laundry Income",
+          "actual": 2437.17,
+          "budget": 0.0,
+          "variance": 2437.17,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4200-00",
+          "description": "Interest Income - Operating",
+          "actual": 1670.67,
+          "budget": 0.0,
+          "variance": 1670.67,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4375-00",
+          "description": "Clubhouse Rental Income",
+          "actual": 1800.0,
+          "budget": 0.0,
+          "variance": 1800.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4380-00",
+          "description": "Clubhouse Deposit Income",
+          "actual": 100.0,
+          "budget": 0.0,
+          "variance": 100.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4900-00",
+          "description": "Misc Income",
+          "actual": 150.0,
+          "budget": 0.0,
+          "variance": 150.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4901-00",
+          "description": "Other Income",
+          "actual": 22600.0,
+          "budget": 0.0,
+          "variance": 22600.0,
+          "annual_budget": 0.0
+        }
+      ],
+      "totals": {
+        "total_income": {
+          "actual": 1351556.0,
+          "budget": 1315325.2,
+          "variance": 36230.8,
+          "annual_budget": 1578390.22
+        },
+        "total_operating_income": {
+          "actual": 1351556.0,
+          "budget": 1315325.2,
+          "variance": 36230.8,
+          "annual_budget": 1578390.22
+        }
+      }
+    },
+    "administrative_expenses": {
+      "accounts": [
+        {
+          "code": "5000-00",
+          "description": "Management Contract",
+          "actual": 40669.5,
+          "budget": 48300.0,
+          "variance": 7630.5,
+          "annual_budget": 57960.0
+        },
+        {
+          "code": "5005-00",
+          "description": "Miscellaneous Administrative",
+          "actual": 2653.89,
+          "budget": 4937.5,
+          "variance": 2283.61,
+          "annual_budget": 5925.0
+        },
+        {
+          "code": "5010-00",
+          "description": "Office Expenses",
+          "actual": 3910.93,
+          "budget": 2083.3,
+          "variance": -1827.63,
+          "annual_budget": 2500.0
+        },
+        {
+          "code": "5015-00",
+          "description": "Collection Costs",
+          "actual": 0.0,
+          "budget": 1250.0,
+          "variance": 1250.0,
+          "annual_budget": 1500.0
+        },
+        {
+          "code": "5025-00",
+          "description": "Election Inspector",
+          "actual": 2864.0,
+          "budget": 0.0,
+          "variance": -2864.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "5030-00",
+          "description": "Bad Debt",
+          "actual": 0.0,
+          "budget": 833.3,
+          "variance": 833.3,
+          "annual_budget": 1000.0
+        },
+        {
+          "code": "5035-00",
+          "description": "Bank Charges",
+          "actual": 0.0,
+          "budget": 16.7,
+          "variance": 16.7,
+          "annual_budget": 20.0
+        },
+        {
+          "code": "5040-00",
+          "description": "Taxes",
+          "actual": 35.0,
+          "budget": 6956.7,
+          "variance": 6921.7,
+          "annual_budget": 8348.0
+        },
+        {
+          "code": "5045-00",
+          "description": "Google Workspace",
+          "actual": 557.83,
+          "budget": 210.0,
+          "variance": -347.83,
+          "annual_budget": 252.0
+        },
+        {
+          "code": "5050-00",
+          "description": "Misc Admin Contingency",
+          "actual": 259.58,
+          "budget": 0.0,
+          "variance": -259.58,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "5102-00",
+          "description": "Insurance",
+          "actual": 100203.06,
+          "budget": 96671.7,
+          "variance": -3531.36,
+          "annual_budget": 116006.0
+        }
+      ],
+      "totals": {
+        "total_administrative_expenses": {
+          "actual": 151153.79,
+          "budget": 161259.2,
+          "variance": 10105.41,
+          "annual_budget": 193511.0
+        }
+      }
+    },
+    "professional_fees": {
+      "accounts": [
+        {
+          "code": "5050-00",
+          "description": "CPA Audit & Tax Prep",
+          "actual": 2000.0,
+          "budget": 1745.8,
+          "variance": -254.2,
+          "annual_budget": 2095.0
+        },
+        {
+          "code": "5200-00",
+          "description": "Legal Services",
+          "actual": 2665.5,
+          "budget": 4166.7,
+          "variance": 1501.2,
+          "annual_budget": 5000.0
+        }
+      ],
+      "totals": {
+        "total_professional_fees": {
+          "actual": 4665.5,
+          "budget": 5912.5,
+          "variance": 1247.0,
+          "annual_budget": 7095.0
+        }
+      }
+    },
+    "utilities": {
+      "accounts": [
+        {
+          "code": "5510-00",
+          "description": "Water",
+          "actual": 137375.78,
+          "budget": 126875.0,
+          "variance": -10500.78,
+          "annual_budget": 152250.0
+        },
+        {
+          "code": "5520-00",
+          "description": "PG&E",
+          "actual": 226483.2,
+          "budget": 186875.0,
+          "variance": -39608.2,
+          "annual_budget": 224250.0
+        },
+        {
+          "code": "5550-00",
+          "description": "Refuse",
+          "actual": 96293.03,
+          "budget": 101875.0,
+          "variance": 5581.97,
+          "annual_budget": 122250.0
+        },
+        {
+          "code": "5570-00",
+          "description": "Telephone",
+          "actual": 0.0,
+          "budget": 20000.0,
+          "variance": 20000.0,
+          "annual_budget": 24000.0
+        }
+      ],
+      "totals": {
+        "total_utilities": {
+          "actual": 460152.01,
+          "budget": 435625.0,
+          "variance": -24527.01,
+          "annual_budget": 522750.0
+        }
+      }
+    },
+    "repair_and_maintenance": {
+      "accounts": [
+        {
+          "code": "6500-00",
+          "description": "General Repairs",
+          "actual": 25314.86,
+          "budget": 34576.7,
+          "variance": 9261.84,
+          "annual_budget": 41492.0
+        },
+        {
+          "code": "6505-00",
+          "description": "Electrical Repairs",
+          "actual": 565.0,
+          "budget": 11500.0,
+          "variance": 10935.0,
+          "annual_budget": 13800.0
+        },
+        {
+          "code": "6520-00",
+          "description": "Pest Control",
+          "actual": 5230.0,
+          "budget": 6666.7,
+          "variance": 1436.7,
+          "annual_budget": 8000.0
+        },
+        {
+          "code": "6525-00",
+          "description": "Fire Extinguishers",
+          "actual": 3857.98,
+          "budget": 833.3,
+          "variance": -3024.68,
+          "annual_budget": 1000.0
+        },
+        {
+          "code": "6530-00",
+          "description": "Janitorial Contract",
+          "actual": 19843.2,
+          "budget": 17910.0,
+          "variance": -1933.2,
+          "annual_budget": 21492.0
+        },
+        {
+          "code": "6535-00",
+          "description": "Boilers",
+          "actual": 9520.91,
+          "budget": 5833.3,
+          "variance": -3687.61,
+          "annual_budget": 7000.0
+        },
+        {
+          "code": "6550-00",
+          "description": "Plumbing Repairs",
+          "actual": 12536.25,
+          "budget": 8333.3,
+          "variance": -4202.95,
+          "annual_budget": 10000.0
+        },
+        {
+          "code": "6555-00",
+          "description": "Plumbing Repipe",
+          "actual": 5920.0,
+          "budget": 41666.7,
+          "variance": 35746.7,
+          "annual_budget": 50000.0
+        },
+        {
+          "code": "6560-00",
+          "description": "Roofing Repairs",
+          "actual": 0.0,
+          "budget": 4166.7,
+          "variance": 4166.7,
+          "annual_budget": 5000.0
+        },
+        {
+          "code": "6570-00",
+          "description": "Lighting Repairs",
+          "actual": 20401.93,
+          "budget": 16666.7,
+          "variance": -3735.23,
+          "annual_budget": 20000.0
+        },
+        {
+          "code": "6600-00",
+          "description": "Keys & Locks",
+          "actual": 802.26,
+          "budget": 1666.7,
+          "variance": 864.44,
+          "annual_budget": 2000.0
+        },
+        {
+          "code": "6610-00",
+          "description": "Termites",
+          "actual": 0.0,
+          "budget": 4166.7,
+          "variance": 4166.7,
+          "annual_budget": 5000.0
+        },
+        {
+          "code": "6655-00",
+          "description": "Pool & Spa Contract",
+          "actual": 6156.0,
+          "budget": 6113.5,
+          "variance": -42.5,
+          "annual_budget": 7336.22
+        },
+        {
+          "code": "6660-00",
+          "description": "Pool & Spa Permits",
+          "actual": 1749.0,
+          "budget": 145.0,
+          "variance": -1604.0,
+          "annual_budget": 174.0
+        },
+        {
+          "code": "6665-00",
+          "description": "Pool & Spa Repairs",
+          "actual": 3546.48,
+          "budget": 1666.7,
+          "variance": -1879.78,
+          "annual_budget": 2000.0
+        },
+        {
+          "code": "6670-00",
+          "description": "Pool & Spa Supplies",
+          "actual": 5274.45,
+          "budget": 4875.0,
+          "variance": -399.45,
+          "annual_budget": 5850.0
+        }
+      ],
+      "totals": {
+        "total_repair_and_maintenance": {
+          "actual": 120718.32,
+          "budget": 166787.0,
+          "variance": 46068.68,
+          "annual_budget": 200144.22
+        }
+      }
+    },
+    "grounds_repair_and_maintenance": {
+      "accounts": [
+        {
+          "code": "6700-00",
+          "description": "Landscape Contract",
+          "actual": 56000.0,
+          "budget": 56000.0,
+          "variance": 0.0,
+          "annual_budget": 67200.0
+        },
+        {
+          "code": "6705-00",
+          "description": "Landscape Extras",
+          "actual": 350.0,
+          "budget": 4166.7,
+          "variance": 3816.7,
+          "annual_budget": 5000.0
+        },
+        {
+          "code": "6710-00",
+          "description": "Landscape Irrigation",
+          "actual": 4950.0,
+          "budget": 6666.7,
+          "variance": 1716.7,
+          "annual_budget": 8000.0
+        },
+        {
+          "code": "6715-00",
+          "description": "Landscape Trees",
+          "actual": 13453.0,
+          "budget": 37500.0,
+          "variance": 24047.0,
+          "annual_budget": 45000.0
+        },
+        {
+          "code": "6720-00",
+          "description": "Landscape Ivy Trim",
+          "actual": 0.0,
+          "budget": 833.3,
+          "variance": 833.3,
+          "annual_budget": 1000.0
+        }
+      ],
+      "totals": {
+        "total_grounds_repair_and_maintenance": {
+          "actual": 74753.0,
+          "budget": 105166.7,
+          "variance": 30413.7,
+          "annual_budget": 126200.0
+        }
+      }
+    },
+    "reserve_funding": {
+      "accounts": [
+        {
+          "code": "8000-00",
+          "description": "Reserve Contribution",
+          "actual": 440575.0,
+          "budget": 440575.0,
+          "variance": 0.0,
+          "annual_budget": 528690.0
+        }
+      ],
+      "totals": {
+        "total_reserve_funding": {
+          "actual": 440575.0,
+          "budget": 440575.0,
+          "variance": 0.0,
+          "annual_budget": 528690.0
+        }
+      }
+    },
+    "totals": {
+      "total_operating_expense": {
+        "actual": 1252017.62,
+        "budget": 1315325.4,
+        "variance": 63007.78,
+        "annual_budget": 1578390.22
+      },
+      "net_income": {
+        "actual": 99538.38,
+        "budget": -0.2,
+        "variance": 99538.58,
+        "annual_budget": 0.0
+      }
+    }
+  },
+  "reserve": {
+    "income": {
+      "accounts": [
+        {
+          "code": "4300-00",
+          "description": "Interest Income - Reserves",
+          "actual": 18260.52,
+          "budget": 0.0,
+          "variance": 18260.52,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "4310-00",
+          "description": "Reserve Contribution Income",
+          "actual": 440575.0,
+          "budget": 440575.0,
+          "variance": 0.0,
+          "annual_budget": 528690.0
+        }
+      ],
+      "totals": {
+        "total_other_income": {
+          "actual": 458835.52,
+          "budget": 440575.0,
+          "variance": 18260.52,
+          "annual_budget": 528690.0
+        },
+        "total_reserve_income": {
+          "actual": 458835.52,
+          "budget": 440575.0,
+          "variance": 18260.52,
+          "annual_budget": 528690.0
+        }
+      }
+    },
+    "expenses": {
+      "accounts": [
+        {
+          "code": "0335-00",
+          "description": "Reserve - Fencing",
+          "actual": 18327.0,
+          "budget": 0.0,
+          "variance": -18327.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "0700-00",
+          "description": "Reserve - Painting",
+          "actual": 7690.0,
+          "budget": 0.0,
+          "variance": -7690.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "1210-00",
+          "description": "Reserve - Bank Fees",
+          "actual": -0.01,
+          "budget": 0.0,
+          "variance": 0.01,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "1265-00",
+          "description": "Reserve - Irrigation",
+          "actual": 3782.05,
+          "budget": 0.0,
+          "variance": -3782.05,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "1280-00",
+          "description": "Reserve - Pest Control",
+          "actual": 11030.0,
+          "budget": 0.0,
+          "variance": -11030.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "1305-00",
+          "description": "Reserve - Termites",
+          "actual": -500.0,
+          "budget": 0.0,
+          "variance": 500.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2020-00",
+          "description": "Grounds - Mailbox Structures; Repair/Replace",
+          "actual": 7675.0,
+          "budget": 0.0,
+          "variance": -7675.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2040-00",
+          "description": "Grounds - Wood Fence (Perimeter); Replace (20%)",
+          "actual": 15975.0,
+          "budget": 0.0,
+          "variance": -15975.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2085-00",
+          "description": "Landscape - Trees; Trim/Remove",
+          "actual": 25320.0,
+          "budget": 0.0,
+          "variance": -25320.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2100-00",
+          "description": "Paved Surfaces - Concrete; Repair (2%)",
+          "actual": 1200.0,
+          "budget": 0.0,
+          "variance": -1200.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2135-00",
+          "description": "Buildings - Balconies; Replace/Rebuild (20%)",
+          "actual": 6300.0,
+          "budget": 0.0,
+          "variance": -6300.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2180-00",
+          "description": "Buildings - Wood Fence (Patios); Replace 20%",
+          "actual": 7108.0,
+          "budget": 0.0,
+          "variance": -7108.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2195-00",
+          "description": "Buildings - Wood Surfaces; Repaint",
+          "actual": 1953.0,
+          "budget": 0.0,
+          "variance": -1953.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2200-00",
+          "description": "Buildings - Wood Siding/Trim; Repair (3%)",
+          "actual": 3221.4,
+          "budget": 0.0,
+          "variance": -3221.4,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2340-00",
+          "description": "Pool Area - Spa Coping & Tile; Replace",
+          "actual": 1500.0,
+          "budget": 0.0,
+          "variance": -1500.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2380-00",
+          "description": "Pool Equipment - Spa Filter Pump; Replace",
+          "actual": 5348.02,
+          "budget": 0.0,
+          "variance": -5348.02,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2386-00",
+          "description": "Pool Equipment; Pool Skimmer",
+          "actual": 3500.0,
+          "budget": 0.0,
+          "variance": -3500.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2390-00",
+          "description": "Mechanical - Boilers (Buildings); Replace",
+          "actual": 6598.0,
+          "budget": 0.0,
+          "variance": -6598.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2420-00",
+          "description": "Mechanical - Circulation Pumps; Partial Replace",
+          "actual": 3893.25,
+          "budget": 0.0,
+          "variance": -3893.25,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2425-00",
+          "description": "Mechanical - Plumbing; Replace/Reline/Repair",
+          "actual": 91544.0,
+          "budget": 0.0,
+          "variance": -91544.0,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "2430-00",
+          "description": "Mechanical - Electrical System; Repair/Replace",
+          "actual": 4787.19,
+          "budget": 0.0,
+          "variance": -4787.19,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "9000-00",
+          "description": "Taxes - Reserves",
+          "actual": 13698.24,
+          "budget": 0.0,
+          "variance": -13698.24,
+          "annual_budget": 0.0
+        },
+        {
+          "code": "9999-00",
+          "description": "Unscheduled Reserves",
+          "actual": 31781.22,
+          "budget": 0.0,
+          "variance": -31781.22,
+          "annual_budget": 0.0
+        }
+      ],
+      "totals": {
+        "total_reserve_expenses": {
+          "actual": 271731.36,
+          "budget": 0.0,
+          "variance": -271731.36,
+          "annual_budget": 0.0
+        },
+        "total_reserve_expense": {
+          "actual": 271731.36,
+          "budget": 0.0,
+          "variance": -271731.36,
+          "annual_budget": 0.0
+        }
+      }
+    },
+    "totals": {
+      "net_reserve": {
+        "actual": 187104.16,
+        "budget": 440575.0,
+        "variance": -253470.84,
+        "annual_budget": 528690.0
+      }
+    }
+  }
+}

@@ -1,46 +1,63 @@
+polygons.json
 [
   {
-    "id": "box-1",
-    "name": "Example Building A",
-    "from_month": "2025-01",
-    "to_month": "2025-03",
+    "id": "box-1764736775183",
+    "name": "club house",
+    "from_month": "2025-12",
+    "to_month": "2025-12",
     "links": [
       {
-        "label": "Roof inspection report",
-        "url": "https://example.com/building-a-roof-report.pdf"
-      },
-      {
-        "label": "Painting photos",
-        "url": "https://example.com/building-a-painting-photos"
+        "label": "roof nails",
+        "url": "https://drive.google.com/file/d/1f6ebzZse_JKOZ0hHL7lFZCzfodjVyG6i/view?usp=drivesdk"
       }
     ],
     "polygon": [
-      { "x": 0.25, "y": 0.25 },
-      { "x": 0.35, "y": 0.25 },
-      { "x": 0.35, "y": 0.35 },
-      { "x": 0.25, "y": 0.35 }
+      {
+        "x": 0.3874692174488913,
+        "y": 0.40732278466579835
+      },
+      {
+        "x": 0.4948326156524841,
+        "y": 0.40732278466579835
+      },
+      {
+        "x": 0.4948326156524841,
+        "y": 0.5896828248625846
+      },
+      {
+        "x": 0.3874692174488913,
+        "y": 0.5896828248625846
+      }
     ]
   },
   {
-    "id": "box-2",
-    "name": "Example Pool Area",
-    "from_month": "2025-04",
-    "to_month": "2025-09",
+    "id": "box-1764736865229",
+    "name": "spa",
+    "from_month": "2025-12",
+    "to_month": "2025-12",
     "links": [
       {
-        "label": "Pool maintenance log",
-        "url": "https://example.com/pool-maintenance-log"
-      },
-      {
-        "label": "Pool rules PDF",
-        "url": "https://example.com/pool-rules.pdf"
+        "label": "resurface",
+        "url": "https://drive.google.com/file/d/1BtbtQUI9VIWdGUZXmcG055dFq6Pcr0zx/view?usp=drivesdk"
       }
     ],
     "polygon": [
-      { "x": 0.55, "y": 0.6 },
-      { "x": 0.7, "y": 0.6 },
-      { "x": 0.7, "y": 0.75 },
-      { "x": 0.55, "y": 0.75 }
+      {
+        "x": 0.546019320002573,
+        "y": 0.5382479417301577
+      },
+      {
+        "x": 0.601806183775028,
+        "y": 0.5382479417301577
+      },
+      {
+        "x": 0.601806183775028,
+        "y": 0.6005932546179479
+      },
+      {
+        "x": 0.546019320002573,
+        "y": 0.6005932546179479
+      }
     ]
   }
 ]

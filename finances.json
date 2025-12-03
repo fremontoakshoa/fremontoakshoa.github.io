@@ -1,0 +1,22 @@
+[
+  {
+    "month": "2025-01",
+    "reserves": 85000,
+    "expenses": 4200
+  },
+  {
+    "month": "2025-02",
+    "reserves": 85250,
+    "expenses": 3900
+  },
+  {
+    "month": "2025-03",
+    "reserves": 86000,
+    "expenses": 4500
+  },
+  {
+    "month": "2025-04",
+    "reserves": 87000,
+    "expenses": 4800
+  }
+]

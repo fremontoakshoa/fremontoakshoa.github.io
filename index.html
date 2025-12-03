@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Fremont Oaks Map – Monthly Activities</title>
+  <title>Fremont Oaks – Monthly Operations & Finances</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <style>
@@ -30,6 +30,7 @@
       background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      gap: 0.75rem;
     }
 
     .header-left {
@@ -59,6 +60,37 @@
     .title-sub {
       font-size: 0.75rem;
       color: #64748b;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .tabs {
+      background: #e5e7eb;
+      padding: 0.12rem;
+      border-radius: 999px;
+      display: inline-flex;
+      gap: 0.12rem;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 0.25rem 0.9rem;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      cursor: pointer;
+      color: #4b5563;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: #111827;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
     }
 
     .header-right {
@@ -98,6 +130,13 @@
       min-height: 0;
     }
 
+    /* Operations layout (map + sidebar) */
+    #operationsView {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
     .map-panel {
       flex: 2;
       min-height: 300px;
@@ -117,7 +156,8 @@
 
     .map-container img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: contain;
       display: block;
     }
 
@@ -126,12 +166,12 @@
       inset: 0;
       width: 100%;
       height: 100%;
+      pointer-events: none;
     }
 
     svg {
       width: 100%;
       height: 100%;
-      pointer-events: none;
     }
 
     .area-polygon {
@@ -170,7 +210,7 @@
       padding: 0.4rem 0.6rem;
       border-radius: 0.5rem;
       font-size: 0.75rem;
-      max-width: 270px;
+      max-width: 280px;
     }
 
     .sidebar {
@@ -302,8 +342,129 @@
       cursor: default;
     }
 
+    /* Finances view */
+    #financesView {
+      display: none;
+      flex: 1;
+      padding: 0.75rem 1rem;
+    }
+
+    .finances-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 0.75rem;
+      border: 1px solid #e2e8f0;
+      padding: 0.9rem 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 0;
+    }
+
+    .fin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .fin-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .fin-sub {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .fin-current-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .fin-pill {
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.78rem;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .fin-chart {
+      width: 100%;
+      height: 160px;
+      border-radius: 0.75rem;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+    }
+
+    .fin-chart svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .fin-table-wrapper {
+      max-height: 220px;
+      overflow: auto;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    th,
+    td {
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: right;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 500;
+      color: #4b5563;
+      position: sticky;
+      top: 0;
+    }
+
+    tr.highlight-row {
+      background: #eff6ff;
+    }
+
+    .fin-placeholder {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    @media (max-width: 960px) {
+      .fin-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
     @media (max-width: 800px) {
       main {
+        flex-direction: column;
+      }
+      #operationsView {
         flex-direction: column;
       }
       .sidebar {
@@ -319,10 +480,17 @@
     <div class="header-left">
       <div class="badge">HOA</div>
       <div>
-        <div class="title-main">Fremont Oaks – Monthly Activities</div>
+        <div class="title-main">Fremont Oaks – Monthly Management</div>
         <div class="title-sub">
-          Month-based focus: active boxes highlight, others fade.
+          Operations map & finances, organized by month.
         </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="tabs">
+        <button id="tabOperations" class="tab-btn active">Operations</button>
+        <button id="tabFinances" class="tab-btn">Finances</button>
       </div>
     </div>
 
@@ -337,52 +505,107 @@
   </header>
 
   <main>
-    <section class="map-panel">
-      <div id="mapContainer" class="map-container">
-        <img id="mapImage" src="map.png" alt="Fremont Oaks top view" />
-        <div class="map-overlay">
-          <svg id="overlaySvg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+    <!-- OPERATIONS VIEW -->
+    <div id="operationsView">
+      <section class="map-panel">
+        <div id="mapContainer" class="map-container">
+          <img id="mapImage" src="map.png" alt="Fremont Oaks top view" />
+          <div class="map-overlay">
+            <svg
+              id="overlaySvg"
+              viewBox="0 0 1000 1000"
+              preserveAspectRatio="xMidYMid meet"
+            ></svg>
+          </div>
+          <div id="drawHint" class="draw-hint" style="display:none;">
+            Draw mode (squares only): click and drag on the map to define a box.
+            Release, then click “Finish square” to save it (later download JSON).
+          </div>
         </div>
-        <div id="drawHint" class="draw-hint" style="display:none;">
-          Draw mode (squares only): first click sets one corner, second click sets the opposite corner.
-          Then click “Finish square” to save (and later download JSON).
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div id="sidebarTitle" class="sidebar-title">No area selected</div>
-        <div id="sidebarSub" class="sidebar-sub">
-          Choose a month above. Click a square or enter draw mode to add a new one.
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div id="sidebarTitle" class="sidebar-title">No area selected</div>
+          <div id="sidebarSub" class="sidebar-sub">
+            Choose a month above. Click a highlighted box, or draw a new one.
+          </div>
+        </div>
+
+        <div class="sidebar-body">
+          <div id="sidebarContent" class="placeholder">
+            Each box has a month range (from/to). For the selected month, active
+            boxes are highlighted and inactive boxes fade. Each box can have
+            multiple items (files/links), shown as separate messages.
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <button id="finishBtn" class="btn primary" disabled>✅ Finish square</button>
+          <button id="cancelBtn" class="btn" disabled>✖ Cancel</button>
+          <button id="downloadBtn" class="btn">⬇ Download JSON</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- FINANCES VIEW -->
+    <div id="financesView">
+      <div class="finances-inner">
+        <div class="fin-header">
+          <div>
+            <div class="fin-title">Finances</div>
+            <div class="fin-sub">
+              Month-based reserves & expenses loaded from <code>finances.json</code>.
+            </div>
+          </div>
+          <div class="fin-current-row">
+            <div id="finMonthLabel" class="fin-pill">Month: –</div>
+            <div id="finCurrentNumbers" class="fin-pill">
+              Reserves: – • Expenses: –
+            </div>
+          </div>
+        </div>
+
+        <div id="finChart" class="fin-chart">
+          <span class="fin-placeholder">No data yet. Add entries in finances.json.</span>
+        </div>
+
+        <div class="fin-table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Reserves</th>
+                <th>Expenses</th>
+              </tr>
+            </thead>
+            <tbody id="finTableBody">
+              <tr>
+                <td colspan="3" class="fin-placeholder">
+                  No data.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <div class="sidebar-body">
-        <div id="sidebarContent" class="placeholder">
-          Each box has a month range (from/to). For the selected month, active boxes are highlighted and
-          inactive boxes fade. One box can have multiple files/links, shown as separate messages.
-        </div>
-      </div>
-
-      <div class="sidebar-footer">
-        <button id="finishBtn" class="btn primary" disabled>✅ Finish square</button>
-        <button id="cancelBtn" class="btn" disabled>✖ Cancel</button>
-        <button id="downloadBtn" class="btn">⬇ Download JSON</button>
-      </div>
-    </aside>
+    </div>
   </main>
 
   <script>
     // --- Data/state ----------------------------------------------------
-    let polygons = []; // loaded from polygons.json
+    let polygons = []; // operations boxes (areas)
     let selectedId = null;
 
     let drawMode = false;
-    let currentCorners = []; // up to 2 normalized points {x, y} for square
+    let currentCorners = []; // at most 2 normalized points {x, y} for square
+    let isDragging = false;
 
     const VIEWBOX_SIZE = 1000; // SVG coordinate space
     let selectedMonthId = getCurrentMonthId(); // "YYYY-MM"
+
+    let activeTab = "operations"; // "operations" | "finances"
+    let finances = []; // loaded from finances.json
 
     // --- DOM refs ------------------------------------------------------
     const overlaySvg = document.getElementById("overlaySvg");
@@ -402,6 +625,17 @@
     const nextMonthBtn = document.getElementById("nextMonthBtn");
     const monthLabel = document.getElementById("monthLabel");
 
+    const operationsView = document.getElementById("operationsView");
+    const financesView = document.getElementById("financesView");
+
+    const tabOperations = document.getElementById("tabOperations");
+    const tabFinances = document.getElementById("tabFinances");
+
+    const finMonthLabel = document.getElementById("finMonthLabel");
+    const finCurrentNumbers = document.getElementById("finCurrentNumbers");
+    const finChart = document.getElementById("finChart");
+    const finTableBody = document.getElementById("finTableBody");
+
     // --- Month helpers -------------------------------------------------
     function getCurrentMonthId() {
       const d = new Date();
@@ -409,7 +643,7 @@
         d.getFullYear() +
         "-" +
         String(d.getMonth() + 1).padStart(2, "0")
-      ); // "YYYY-MM"
+      );
     }
 
     function monthIdToIndex(m) {
@@ -418,7 +652,7 @@
       const y = parseInt(yStr, 10);
       const mm = parseInt(mmStr, 10);
       if (isNaN(y) || isNaN(mm)) return null;
-      return y * 12 + (mm - 1); // 0-based month index
+      return y * 12 + (mm - 1);
     }
 
     function isMonthInRange(selected, from, to) {
@@ -454,15 +688,14 @@
       });
     }
 
-    // --- Utility: load polygons.json -----------------------------------
+    // --- Load data -----------------------------------------------------
     async function loadPolygons() {
       try {
         const res = await fetch("polygons.json", { cache: "no-cache" });
-        if (!res.ok) {
-          console.warn("Could not load polygons.json:", res.status, res.statusText);
-          polygons = [];
-        } else {
+        if (res.ok) {
           polygons = await res.json();
+        } else {
+          polygons = [];
         }
       } catch (err) {
         console.error("Error loading polygons.json:", err);
@@ -473,9 +706,24 @@
       updateMonthLabel();
     }
 
+    async function loadFinances() {
+      try {
+        const res = await fetch("finances.json", { cache: "no-cache" });
+        if (res.ok) {
+          finances = await res.json();
+        } else {
+          finances = [];
+        }
+      } catch (err) {
+        console.error("Error loading finances.json:", err);
+        finances = [];
+      }
+      renderFinances();
+    }
+
     // --- Coordinate helpers -------------------------------------------
     function getNormalizedCoords(evt) {
-      const rect = mapContainer.getBoundingClientRect();
+      const rect = overlaySvg.getBoundingClientRect();
       const x = (evt.clientX - rect.left) / rect.width;
       const y = (evt.clientY - rect.top) / rect.height;
       return {
@@ -503,7 +751,7 @@
         .join(" ");
     }
 
-    // --- Rendering -----------------------------------------------------
+    // --- Rendering: operations ----------------------------------------
     function renderPolygons() {
       overlaySvg.innerHTML = "";
 
@@ -529,7 +777,6 @@
         overlaySvg.appendChild(elem);
       });
 
-      // in-progress square
       if (drawMode && currentCorners.length === 2) {
         const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
         const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
@@ -541,6 +788,9 @@
 
     function updateMonthLabel() {
       monthLabel.textContent = formatMonthLabel(selectedMonthId);
+      if (finMonthLabel) {
+        finMonthLabel.textContent = "Month: " + formatMonthLabel(selectedMonthId);
+      }
     }
 
     function updateSidebar() {
@@ -551,12 +801,12 @@
         sidebarSub.textContent =
           "Viewing: " +
           monthText +
-          ". Click a highlighted box to see its links, or draw a new one.";
+          ". Click a highlighted box to see its items, or draw a new one.";
         sidebarContent.className = "placeholder";
         sidebarContent.innerHTML =
           "Each box has a from/to month (e.g. 2025-01 to 2025-03). " +
           "For the selected month, active boxes are highlighted and inactive ones fade. " +
-          "One box can have multiple links/files shown as separate messages.";
+          "Each box can have multiple links/files, shown as separate messages.";
         return;
       }
 
@@ -576,16 +826,20 @@
 
       const wrapper = document.createElement("div");
 
-      // status pill
       const status = document.createElement("div");
       status.className = "status-pill " + (active ? "active" : "inactive");
       status.textContent = active
         ? "Active this month (" + monthText + ")"
-        : "Not active in " + monthText;
+        : "Not active in " +
+          monthText +
+          " (active from " +
+          fromLabel +
+          " → " +
+          toLabel +
+          ")";
       wrapper.appendChild(status);
 
       const links = poly.links || [];
-
       if (links.length > 0) {
         const label = document.createElement("div");
         label.className = "field-label";
@@ -632,10 +886,11 @@
       sidebarContent.appendChild(wrapper);
     }
 
-    // --- Draw mode (squares only) -------------------------------------
+    // --- Draw mode (squares only, drag to see box) --------------------
     function setDrawMode(on) {
       drawMode = on;
       currentCorners = [];
+      isDragging = false;
       selectedId = null;
       renderPolygons();
       updateSidebar();
@@ -655,36 +910,49 @@
       }
     }
 
-    function handleMapClick(evt) {
+    function handleMouseDown(evt) {
       if (!drawMode) return;
+      isDragging = true;
       const norm = getNormalizedCoords(evt);
+      currentCorners = [norm, norm];
+      renderPolygons();
+    }
 
-      if (currentCorners.length === 0) {
-        // First corner
-        currentCorners.push(norm);
-      } else if (currentCorners.length === 1) {
-        // Second corner
-        currentCorners.push(norm);
+    function handleMouseMove(evt) {
+      if (!drawMode || !isDragging || currentCorners.length === 0) return;
+      const norm = getNormalizedCoords(evt);
+      currentCorners[1] = norm;
+      renderPolygons();
+    }
+
+    function handleMouseUp(evt) {
+      if (!drawMode || !isDragging) return;
+      isDragging = false;
+      const norm = getNormalizedCoords(evt);
+      if (currentCorners.length === 1) {
+        currentCorners[1] = norm;
       } else {
-        // Already have two; reset and start new
-        currentCorners = [norm];
+        currentCorners[1] = norm;
       }
       renderPolygons();
+    }
+
+    function handleMouseLeave() {
+      if (!drawMode) return;
+      isDragging = false;
     }
 
     function finishSquare() {
       if (!drawMode) return;
       if (currentCorners.length < 2) {
-        alert("Click twice on the map (two opposite corners) to define a square.");
+        alert("Click and drag on the map so there are two corners for the square.");
         return;
       }
 
       const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
 
       const name = prompt("Name for this area (box):", "New area");
-      if (name === null) {
-        return;
-      }
+      if (name === null) return;
 
       const fromDefault = selectedMonthId;
       const toDefault = selectedMonthId;
@@ -737,6 +1005,7 @@
     function cancelDrawing() {
       if (!drawMode) return;
       currentCorners = [];
+      isDragging = false;
       renderPolygons();
       updateSidebar();
     }
@@ -756,25 +1025,158 @@
       URL.revokeObjectURL(url);
     }
 
-    // --- Month nav handlers -------------------------------------------
+    // --- Finances rendering -------------------------------------------
+    function renderFinances() {
+      // Find entry for selectedMonthId
+      const current = finances.find((f) => f.month === selectedMonthId) || null;
+
+      if (current) {
+        finCurrentNumbers.textContent =
+          "Reserves: " +
+          formatCurrency(current.reserves) +
+          " • Expenses: " +
+          formatCurrency(current.expenses);
+      } else {
+        finCurrentNumbers.textContent = "Reserves: – • Expenses: –";
+      }
+
+      // Chart: simple 2-bar chart (reserves vs expenses) for current month
+      finChart.innerHTML = "";
+      if (current) {
+        const maxVal = Math.max(current.reserves, current.expenses, 1);
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("viewBox", "0 0 100 100");
+
+        const categories = [
+          { label: "Reserves", value: current.reserves },
+          { label: "Expenses", value: current.expenses },
+        ];
+
+        categories.forEach((cat, idx) => {
+          const barWidth = 20;
+          const gap = 10;
+          const x = 15 + idx * (barWidth + gap);
+          const height = (cat.value / maxVal) * 60;
+          const y = 80 - height;
+
+          const rect = document.createElementNS(svgNS, "rect");
+          rect.setAttribute("x", String(x));
+          rect.setAttribute("y", String(y));
+          rect.setAttribute("width", String(barWidth));
+          rect.setAttribute("height", String(height));
+          rect.setAttribute("fill", idx === 0 ? "#4ade80" : "#f97316");
+          svg.appendChild(rect);
+
+          const label = document.createElementNS(svgNS, "text");
+          label.setAttribute("x", String(x + barWidth / 2));
+          label.setAttribute("y", "90");
+          label.setAttribute("text-anchor", "middle");
+          label.setAttribute("font-size", "6");
+          label.textContent = cat.label;
+          svg.appendChild(label);
+        });
+
+        finChart.appendChild(svg);
+      } else {
+        const span = document.createElement("span");
+        span.className = "fin-placeholder";
+        span.textContent = "No data for this month yet. Add entries in finances.json.";
+        finChart.appendChild(span);
+      }
+
+      // Table: show all months
+      finTableBody.innerHTML = "";
+      if (!finances || finances.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 3;
+        td.className = "fin-placeholder";
+        td.textContent = "No data. Add entries in finances.json.";
+        tr.appendChild(td);
+        finTableBody.appendChild(tr);
+        return;
+      }
+
+      finances
+        .slice()
+        .sort((a, b) => monthIdToIndex(a.month) - monthIdToIndex(b.month))
+        .forEach((row) => {
+          const tr = document.createElement("tr");
+          if (row.month === selectedMonthId) {
+            tr.className = "highlight-row";
+          }
+
+          const tdMonth = document.createElement("td");
+          tdMonth.textContent = formatMonthLabel(row.month);
+          tr.appendChild(tdMonth);
+
+          const tdRes = document.createElement("td");
+          tdRes.textContent = formatCurrency(row.reserves);
+          tr.appendChild(tdRes);
+
+          const tdExp = document.createElement("td");
+          tdExp.textContent = formatCurrency(row.expenses);
+          tr.appendChild(tdExp);
+
+          finTableBody.appendChild(tr);
+        });
+    }
+
+    function formatCurrency(x) {
+      if (typeof x !== "number") return "–";
+      return x.toLocaleString(undefined, {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      });
+    }
+
+    // --- Tabs ----------------------------------------------------------
+    function setActiveTab(tab) {
+      activeTab = tab;
+      if (tab === "operations") {
+        operationsView.style.display = "flex";
+        financesView.style.display = "none";
+        tabOperations.classList.add("active");
+        tabFinances.classList.remove("active");
+        toggleDrawBtn.style.display = "inline-flex";
+      } else {
+        operationsView.style.display = "none";
+        financesView.style.display = "flex";
+        tabOperations.classList.remove("active");
+        tabFinances.classList.add("active");
+        toggleDrawBtn.style.display = "none";
+      }
+      // Re-render views that depend on month
+      updateMonthLabel();
+      renderFinances();
+      renderPolygons();
+      updateSidebar();
+    }
+
+    // --- Month navigation ----------------------------------------------
     function setSelectedMonth(monthId) {
       selectedMonthId = monthId;
       updateMonthLabel();
       renderPolygons();
       updateSidebar();
+      renderFinances();
     }
 
     // --- Event wiring --------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
       loadPolygons();
+      loadFinances();
 
       toggleDrawBtn.addEventListener("click", () => {
         setDrawMode(!drawMode);
       });
 
-      mapContainer.addEventListener("click", (evt) => {
-        handleMapClick(evt);
-      });
+      mapContainer.addEventListener("mousedown", handleMouseDown);
+      mapContainer.addEventListener("mousemove", handleMouseMove);
+      mapContainer.addEventListener("mouseup", handleMouseUp);
+      mapContainer.addEventListener("mouseleave", handleMouseLeave);
 
       finishBtn.addEventListener("click", () => {
         finishSquare();
@@ -802,8 +1204,17 @@
         setSelectedMonth(shiftMonthId(selectedMonthId, 1));
       });
 
-      // Initial label
+      tabOperations.addEventListener("click", () => {
+        setActiveTab("operations");
+      });
+
+      tabFinances.addEventListener("click", () => {
+        setActiveTab("finances");
+      });
+
+      // Initial label/tab
       updateMonthLabel();
+      setActiveTab("operations");
     });
   </script>
 </body>

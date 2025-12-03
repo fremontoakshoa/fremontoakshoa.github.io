@@ -396,14 +396,22 @@
 
     .fin-chart {
       width: 100%;
-      height: 160px;
+      height: 240px;          /* bigger chart */
       border-radius: 0.75rem;
       background: #f9fafb;
       border: 1px solid #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.5rem;
+      padding: 0.75rem;
+      position: relative;      /* for tooltip text */
+    }
+
+    .fin-table-wrapper {
+      max-height: 60vh;        /* much taller, uses most of screen */
+      overflow: auto;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
     }
 
     .fin-chart svg {
@@ -411,12 +419,6 @@
       height: 100%;
     }
 
-    .fin-table-wrapper {
-      max-height: 220px;
-      overflow: auto;
-      border-radius: 0.5rem;
-      border: 1px solid #e5e7eb;
-    }
 
     table {
       width: 100%;
@@ -578,7 +580,10 @@
         </div>
 
         <div id="finChart" class="fin-chart">
-          <span class="fin-placeholder">No data yet. Add entries in finances.json.</span>
+          <span class="fin-placeholder">No data yet. Add entries in finances/MM_YYYY_finance.json.</span>
+        </div>
+        <div id="finChartInfo" class="fin-sub" style="margin-top:0.25rem;">
+          Tap or click a bar to see exact values.
         </div>
 
         <div class="fin-table-wrapper">
@@ -652,6 +657,8 @@
   const finMonthLabel = document.getElementById("finMonthLabel");
   const finCurrentNumbers = document.getElementById("finCurrentNumbers");
   const finChart = document.getElementById("finChart");
+  const finChartInfo = document.getElementById("finChartInfo");
+
   const finTableBody = document.getElementById("finTableBody");
 
   // --- Month helpers -------------------------------------------------
@@ -1163,108 +1170,177 @@
   }
 
   // --- Finances rendering --------------------------------------------
-  function renderFinances() {
-    finChart.innerHTML = "";
-    finTableBody.innerHTML = "";
+function renderFinances() {
+  finChart.innerHTML = "";
+  finTableBody.innerHTML = "";
 
-    if (!finances) {
-      finCurrentNumbers.textContent =
-        "No finance file for this month.";
-      const span = document.createElement("span");
-      span.className = "fin-placeholder";
-      span.textContent =
+  if (!finances) {
+    finCurrentNumbers.textContent =
+      "No finance file for this month.";
+    if (finChartInfo) {
+      finChartInfo.textContent =
         "Place a file like finances/MM_YYYY_finance.json for this month.";
-      finChart.appendChild(span);
-      return;
     }
-
-    const opNet = finances.operating?.totals?.net_income || null;
-    const resNet = finances.reserve?.totals?.net_reserve || null;
-
-    // summary pill: net operating & net reserve with variance colored
-    const opVar = opNet ? opNet.variance : 0;
-    const resVar = resNet ? resNet.variance : 0;
-
-    const opVarSpan = document.createElement("span");
-    opVarSpan.textContent =
-      "Op net: " + (opNet ? formatCurrency(opNet.actual) : "–") +
-      " (var " + (opNet ? formatSignedCurrency(opNet.variance) : "–") + ")";
-    if (opNet && opNet.variance > 0) opVarSpan.className = "var-positive";
-    else if (opNet && opNet.variance < 0) opVarSpan.className = "var-negative";
-
-    const resVarSpan = document.createElement("span");
-    resVarSpan.textContent =
-      " • Res net: " + (resNet ? formatCurrency(resNet.actual) : "–") +
-      " (var " + (resNet ? formatSignedCurrency(resNet.variance) : "–") + ")";
-    if (resNet && resNet.variance > 0) resVarSpan.className = "var-positive";
-    else if (resNet && resNet.variance < 0) resVarSpan.className = "var-negative";
-
-    finCurrentNumbers.innerHTML = "";
-    finCurrentNumbers.appendChild(opVarSpan);
-    finCurrentNumbers.appendChild(resVarSpan);
-
-    // chart: Op net vs budget, Res net vs budget
-    const values = [];
-    if (opNet) {
-      values.push(
-        { label: "Op Net", value: opNet.actual },
-        { label: "Op Bud", value: opNet.budget }
-      );
-    }
-    if (resNet) {
-      values.push(
-        { label: "Res Net", value: resNet.actual },
-        { label: "Res Bud", value: resNet.budget }
-      );
-    }
-
-    if (values.length > 0) {
-      const maxVal = Math.max(
-        ...values.map((v) => Math.abs(v.value)),
-        1
-      );
-      const svgNS = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(svgNS, "svg");
-      svg.setAttribute("viewBox", "0 0 100 100");
-
-      values.forEach((cat, idx) => {
-        const barWidth = 14;
-        const gap = 4;
-        const x = 10 + idx * (barWidth + gap);
-        const height = (Math.abs(cat.value) / maxVal) * 60;
-        const y = 80 - height;
-
-        const rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("x", String(x));
-        rect.setAttribute("y", String(y));
-        rect.setAttribute("width", String(barWidth));
-        rect.setAttribute("height", String(height));
-        rect.setAttribute(
-          "fill",
-          idx % 2 === 0 ? "#60a5fa" : "#9ca3af"
-        );
-        svg.appendChild(rect);
-
-        const label = document.createElementNS(svgNS, "text");
-        label.setAttribute("x", String(x + barWidth / 2));
-        label.setAttribute("y", "90");
-        label.setAttribute("text-anchor", "middle");
-        label.setAttribute("font-size", "5");
-        label.textContent = cat.label;
-        svg.appendChild(label);
-      });
-
-      finChart.appendChild(svg);
-    } else {
-      const span = document.createElement("span");
-      span.className = "fin-placeholder";
-      span.textContent = "No summary data for this month.";
-      finChart.appendChild(span);
-    }
-
-    // table: all sections/accounts with variance colored
-    renderFinanceSections();
+    const span = document.createElement("span");
+    span.className = "fin-placeholder";
+    span.textContent =
+      "Place a file like finances/MM_YYYY_finance.json for this month.";
+    finChart.appendChild(span);
+    return;
   }
+
+  const opNet = finances.operating?.totals?.net_income || null;
+  const resNet = finances.reserve?.totals?.net_reserve || null;
+
+  // summary pill: net operating & net reserve with variance colored
+  const opVarSpan = document.createElement("span");
+  if (opNet) {
+    opVarSpan.textContent =
+      "Op net: " +
+      formatCurrency(opNet.actual) +
+      " (var " +
+      formatSignedCurrency(opNet.variance) +
+      ")";
+    if (opNet.variance > 0) opVarSpan.className = "var-positive";
+    else if (opNet.variance < 0) opVarSpan.className = "var-negative";
+  } else {
+    opVarSpan.textContent = "Op net: –";
+  }
+
+  const resVarSpan = document.createElement("span");
+  if (resNet) {
+    resVarSpan.textContent =
+      " • Res net: " +
+      formatCurrency(resNet.actual) +
+      " (var " +
+      formatSignedCurrency(resNet.variance) +
+      ")";
+    if (resNet.variance > 0) resVarSpan.className = "var-positive";
+    else if (resNet.variance < 0) resVarSpan.className = "var-negative";
+  } else {
+    resVarSpan.textContent = " • Res net: –";
+  }
+
+  finCurrentNumbers.innerHTML = "";
+  finCurrentNumbers.appendChild(opVarSpan);
+  finCurrentNumbers.appendChild(resVarSpan);
+
+  if (finChartInfo) {
+    finChartInfo.textContent =
+      "Tap/click a bar to see actual vs budget and variance.";
+  }
+
+  // chart: Op net vs budget, Res net vs budget
+  const values = [];
+  if (opNet) {
+    values.push(
+      {
+        label: "Op Net",
+        group: "Operating",
+        field: "actual",
+        value: opNet.actual,
+        ref: opNet,
+      },
+      {
+        label: "Op Bud",
+        group: "Operating",
+        field: "budget",
+        value: opNet.budget,
+        ref: opNet,
+      }
+    );
+  }
+  if (resNet) {
+    values.push(
+      {
+        label: "Res Net",
+        group: "Reserve",
+        field: "actual",
+        value: resNet.actual,
+        ref: resNet,
+      },
+      {
+        label: "Res Bud",
+        group: "Reserve",
+        field: "budget",
+        value: resNet.budget,
+        ref: resNet,
+      }
+    );
+  }
+
+  if (values.length > 0) {
+    const maxVal = Math.max(
+      ...values.map((v) => Math.abs(v.value)),
+      1
+    );
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    values.forEach((cat, idx) => {
+      const barWidth = 14;
+      const gap = 4;
+      const x = 10 + idx * (barWidth + gap);
+      const height = (Math.abs(cat.value) / maxVal) * 60;
+      const y = 80 - height;
+
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", String(x));
+      rect.setAttribute("y", String(y));
+      rect.setAttribute("width", String(barWidth));
+      rect.setAttribute("height", String(height));
+      rect.setAttribute(
+        "fill",
+        idx % 2 === 0 ? "#60a5fa" : "#9ca3af"
+      );
+
+      // click handler to show details
+      rect.addEventListener("click", () => showChartInfo(cat));
+      svg.appendChild(rect);
+
+      const label = document.createElementNS(svgNS, "text");
+      label.setAttribute("x", String(x + barWidth / 2));
+      label.setAttribute("y", "90");
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("font-size", "5");
+      label.textContent = cat.label;
+      svg.appendChild(label);
+    });
+
+    finChart.appendChild(svg);
+  } else {
+    const span = document.createElement("span");
+    span.className = "fin-placeholder";
+    span.textContent = "No summary data for this month.";
+    finChart.appendChild(span);
+  }
+
+  // table: all sections/accounts with variance colored
+  renderFinanceSections();
+}
+function showChartInfo(cat) {
+  if (!finChartInfo) return;
+
+  const { group, field, ref, label, value } = cat;
+
+  if (!ref) {
+    finChartInfo.textContent =
+      `${label}: ${formatCurrency(value)}`;
+    return;
+  }
+
+  const fieldLabel = field === "actual" ? "Actual" : "Budget";
+  const varianceText =
+    typeof ref.variance === "number"
+      ? formatSignedCurrency(ref.variance)
+      : "–";
+
+  finChartInfo.textContent =
+    `${group} ${fieldLabel} net (${label}): ` +
+    `${formatCurrency(ref[field])} (variance ${varianceText})`;
+}
+
 
   function humanizeKey(key) {
     return key

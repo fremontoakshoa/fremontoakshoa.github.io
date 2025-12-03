@@ -592,630 +592,645 @@
     </div>
   </main>
 
-  <script>
-    // --- Data/state ----------------------------------------------------
-    let polygons = []; // operations boxes (areas)
-    let selectedId = null;
+<script>
+  // --- Data/state ----------------------------------------------------
+  let polygons = []; // operations boxes (areas)
+  let selectedId = null;
 
-    let drawMode = false;
-    let currentCorners = []; // at most 2 normalized points {x, y} for square
-    let isDragging = false;
+  let drawMode = false;
+  let currentCorners = []; // at most 2 normalized points {x, y} for square
+  let isDragging = false;
 
-    const VIEWBOX_SIZE = 1000; // SVG coordinate space
-    let selectedMonthId = getCurrentMonthId(); // "YYYY-MM"
+  const VIEWBOX_SIZE = 1000; // SVG coordinate space
+  let selectedMonthId = getCurrentMonthId(); // "YYYY-MM"
 
-    let activeTab = "operations"; // "operations" | "finances"
-    let finances = []; // loaded from finances.json
+  let activeTab = "operations"; // "operations" | "finances"
+  let finances = []; // loaded from finances.json
 
-    // --- DOM refs ------------------------------------------------------
-    const overlaySvg = document.getElementById("overlaySvg");
-    const mapContainer = document.getElementById("mapContainer");
-    const drawHint = document.getElementById("drawHint");
+  // --- DOM refs ------------------------------------------------------
+  const overlaySvg = document.getElementById("overlaySvg");
+  const mapContainer = document.getElementById("mapContainer");
+  const drawHint = document.getElementById("drawHint");
 
-    const sidebarTitle = document.getElementById("sidebarTitle");
-    const sidebarSub = document.getElementById("sidebarSub");
-    const sidebarContent = document.getElementById("sidebarContent");
+  const sidebarTitle = document.getElementById("sidebarTitle");
+  const sidebarSub = document.getElementById("sidebarSub");
+  const sidebarContent = document.getElementById("sidebarContent");
 
-    const toggleDrawBtn = document.getElementById("toggleDrawBtn");
-    const finishBtn = document.getElementById("finishBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
+  const toggleDrawBtn = document.getElementById("toggleDrawBtn");
+  const finishBtn = document.getElementById("finishBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
 
-    const prevMonthBtn = document.getElementById("prevMonthBtn");
-    const nextMonthBtn = document.getElementById("nextMonthBtn");
-    const monthLabel = document.getElementById("monthLabel");
+  const prevMonthBtn = document.getElementById("prevMonthBtn");
+  const nextMonthBtn = document.getElementById("nextMonthBtn");
+  const monthLabel = document.getElementById("monthLabel");
 
-    const operationsView = document.getElementById("operationsView");
-    const financesView = document.getElementById("financesView");
+  const operationsView = document.getElementById("operationsView");
+  const financesView = document.getElementById("financesView");
 
-    const tabOperations = document.getElementById("tabOperations");
-    const tabFinances = document.getElementById("tabFinances");
+  const tabOperations = document.getElementById("tabOperations");
+  const tabFinances = document.getElementById("tabFinances");
 
-    const finMonthLabel = document.getElementById("finMonthLabel");
-    const finCurrentNumbers = document.getElementById("finCurrentNumbers");
-    const finChart = document.getElementById("finChart");
-    const finTableBody = document.getElementById("finTableBody");
+  const finMonthLabel = document.getElementById("finMonthLabel");
+  const finCurrentNumbers = document.getElementById("finCurrentNumbers");
+  const finChart = document.getElementById("finChart");
+  const finTableBody = document.getElementById("finTableBody");
 
-    // --- Month helpers -------------------------------------------------
-    function getCurrentMonthId() {
-      const d = new Date();
-      return (
-        d.getFullYear() +
-        "-" +
-        String(d.getMonth() + 1).padStart(2, "0")
-      );
-    }
+  // --- Month helpers -------------------------------------------------
+  function getCurrentMonthId() {
+    const d = new Date();
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0")
+    );
+  }
 
-    function monthIdToIndex(m) {
-      if (!m || typeof m !== "string" || !m.includes("-")) return null;
-      const [yStr, mmStr] = m.split("-");
-      const y = parseInt(yStr, 10);
-      const mm = parseInt(mmStr, 10);
-      if (isNaN(y) || isNaN(mm)) return null;
-      return y * 12 + (mm - 1);
-    }
+  function monthIdToIndex(m) {
+    if (!m || typeof m !== "string" || !m.includes("-")) return null;
+    const [yStr, mmStr] = m.split("-");
+    const y = parseInt(yStr, 10);
+    const mm = parseInt(mmStr, 10);
+    if (isNaN(y) || isNaN(mm)) return null;
+    return y * 12 + (mm - 1);
+  }
 
-    function isMonthInRange(selected, from, to) {
-      const selIdx = monthIdToIndex(selected);
-      if (selIdx === null) return true;
+  function isMonthInRange(selected, from, to) {
+    const selIdx = monthIdToIndex(selected);
+    if (selIdx === null) return true;
 
-      const fromIdx = monthIdToIndex(from);
-      const toIdx = monthIdToIndex(to);
+    const fromIdx = monthIdToIndex(from);
+    const toIdx = monthIdToIndex(to);
 
-      if (fromIdx !== null && selIdx < fromIdx) return false;
-      if (toIdx !== null && selIdx > toIdx) return false;
-      return true;
-    }
+    if (fromIdx !== null && selIdx < fromIdx) return false;
+    if (toIdx !== null && selIdx > toIdx) return false;
+    return true;
+  }
 
-    function shiftMonthId(monthId, delta) {
-      const idx = monthIdToIndex(monthId);
-      if (idx === null) return monthId;
-      const newIdx = idx + delta;
-      const y = Math.floor(newIdx / 12);
-      const m = newIdx % 12;
-      return y + "-" + String(m + 1).padStart(2, "0");
-    }
+  function shiftMonthId(monthId, delta) {
+    const idx = monthIdToIndex(monthId);
+    if (idx === null) return monthId;
+    const newIdx = idx + delta;
+    const y = Math.floor(newIdx / 12);
+    const m = newIdx % 12;
+    return y + "-" + String(m + 1).padStart(2, "0");
+  }
 
-    function formatMonthLabel(monthId) {
-      const idx = monthIdToIndex(monthId);
-      if (idx === null) return monthId || "";
-      const y = Math.floor(idx / 12);
-      const m = (idx % 12) + 1;
-      const d = new Date(y, m - 1, 1);
-      return d.toLocaleString(undefined, {
-        month: "short",
-        year: "numeric",
-      });
-    }
+  function formatMonthLabel(monthId) {
+    const idx = monthIdToIndex(monthId);
+    if (idx === null) return monthId || "";
+    const y = Math.floor(idx / 12);
+    const m = (idx % 12) + 1;
+    const d = new Date(y, m - 1, 1);
+    return d.toLocaleString(undefined, {
+      month: "short",
+      year: "numeric",
+    });
+  }
 
-    // --- Load data -----------------------------------------------------
-    async function loadPolygons() {
-      try {
-        const res = await fetch("polygons.json", { cache: "no-cache" });
-        if (res.ok) {
-          polygons = await res.json();
-        } else {
-          polygons = [];
-        }
-      } catch (err) {
-        console.error("Error loading polygons.json:", err);
+  // --- Load data -----------------------------------------------------
+  async function loadPolygons() {
+    try {
+      const res = await fetch("polygons.json", { cache: "no-cache" });
+      if (res.ok) {
+        polygons = await res.json();
+      } else {
         polygons = [];
       }
-      renderPolygons();
-      updateSidebar();
-      updateMonthLabel();
+    } catch (err) {
+      console.error("Error loading polygons.json:", err);
+      polygons = [];
     }
+    renderPolygons();
+    updateSidebar();
+    updateMonthLabel();
+  }
 
-    async function loadFinances() {
-      try {
-        const res = await fetch("finances.json", { cache: "no-cache" });
-        if (res.ok) {
-          finances = await res.json();
-        } else {
-          finances = [];
-        }
-      } catch (err) {
-        console.error("Error loading finances.json:", err);
+  async function loadFinances() {
+    try {
+      const res = await fetch("finances.json", { cache: "no-cache" });
+      if (res.ok) {
+        finances = await res.json();
+      } else {
         finances = [];
       }
-      renderFinances();
+    } catch (err) {
+      console.error("Error loading finances.json:", err);
+      finances = [];
     }
+    renderFinances();
+  }
 
-    // --- Coordinate helpers -------------------------------------------
-    function getNormalizedCoords(evt) {
-      const rect = overlaySvg.getBoundingClientRect();
-      const x = (evt.clientX - rect.left) / rect.width;
-      const y = (evt.clientY - rect.top) / rect.height;
-      return {
-        x: Math.min(Math.max(x, 0), 1),
-        y: Math.min(Math.max(y, 0), 1),
-      };
-    }
+  // --- Coordinate helpers -------------------------------------------
+  function getNormalizedCoords(evt) {
+    const rect = overlaySvg.getBoundingClientRect();
+    const x = (evt.clientX - rect.left) / rect.width;
+    const y = (evt.clientY - rect.top) / rect.height;
+    return {
+      x: Math.min(Math.max(x, 0), 1),
+      y: Math.min(Math.max(y, 0), 1),
+    };
+  }
 
-    function getSquareFromCorners(c1, c2) {
-      const x1 = Math.min(c1.x, c2.x);
-      const x2 = Math.max(c1.x, c2.x);
-      const y1 = Math.min(c1.y, c2.y);
-      const y2 = Math.max(c1.y, c2.y);
-      return [
-        { x: x1, y: y1 },
-        { x: x2, y: y1 },
-        { x: x2, y: y2 },
-        { x: x1, y: y2 },
-      ];
-    }
+  function getSquareFromCorners(c1, c2) {
+    const x1 = Math.min(c1.x, c2.x);
+    const x2 = Math.max(c1.x, c2.x);
+    const y1 = Math.min(c1.y, c2.y);
+    const y2 = Math.max(c1.y, c2.y);
+    return [
+      { x: x1, y: y1 },
+      { x: x2, y: y1 },
+      { x: x2, y: y2 },
+      { x: x1, y: y2 },
+    ];
+  }
 
-    function pointsToSvg(points) {
-      return points
-        .map((p) => `${p.x * VIEWBOX_SIZE},${p.y * VIEWBOX_SIZE}`)
-        .join(" ");
-    }
+  function pointsToSvg(points) {
+    return points
+      .map((p) => `${p.x * VIEWBOX_SIZE},${p.y * VIEWBOX_SIZE}`)
+      .join(" ");
+  }
 
-    // --- Rendering: operations ----------------------------------------
-    function renderPolygons() {
-      overlaySvg.innerHTML = "";
+  // --- Rendering: operations ----------------------------------------
+  function renderPolygons() {
+    overlaySvg.innerHTML = "";
 
-      polygons.forEach((poly) => {
-        const pts = poly.polygon || [];
-        const elem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        elem.setAttribute("points", pointsToSvg(pts));
-
-        const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
-        let cls = "area-polygon";
-        if (!active) cls += " inactive";
-        if (poly.id === selectedId) cls += " selected";
-        elem.setAttribute("class", cls);
-
-        elem.addEventListener("click", (evt) => {
-          evt.stopPropagation();
-          if (drawMode) return;
-          selectedId = poly.id;
-          updateSidebar();
-          renderPolygons();
-        });
-
-        overlaySvg.appendChild(elem);
-      });
-
-      if (drawMode && currentCorners.length === 2) {
-        const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
-        const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        temp.setAttribute("points", pointsToSvg(squarePoints));
-        temp.setAttribute("class", "temp-polygon");
-        overlaySvg.appendChild(temp);
-      }
-    }
-
-    function updateMonthLabel() {
-      monthLabel.textContent = formatMonthLabel(selectedMonthId);
-      if (finMonthLabel) {
-        finMonthLabel.textContent = "Month: " + formatMonthLabel(selectedMonthId);
-      }
-    }
-
-    function updateSidebar() {
-      const monthText = formatMonthLabel(selectedMonthId);
-
-      if (!selectedId) {
-        sidebarTitle.textContent = "No area selected";
-        sidebarSub.textContent =
-          "Viewing: " +
-          monthText +
-          ". Click a highlighted box to see its items, or draw a new one.";
-        sidebarContent.className = "placeholder";
-        sidebarContent.innerHTML =
-          "Each box has a from/to month (e.g. 2025-01 to 2025-03). " +
-          "For the selected month, active boxes are highlighted and inactive ones fade. " +
-          "Each box can have multiple links/files, shown as separate messages.";
-        return;
-      }
-
-      const poly = polygons.find((p) => p.id === selectedId);
-      if (!poly) {
-        selectedId = null;
-        updateSidebar();
-        return;
-      }
+    polygons.forEach((poly) => {
+      const pts = poly.polygon || [];
+      const elem = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      elem.setAttribute("points", pointsToSvg(pts));
 
       const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
-      const fromLabel = poly.from_month ? formatMonthLabel(poly.from_month) : "N/A";
-      const toLabel = poly.to_month ? formatMonthLabel(poly.to_month) : "N/A";
+      let cls = "area-polygon";
+      if (!active) cls += " inactive";
+      if (poly.id === selectedId) cls += " selected";
+      elem.setAttribute("class", cls);
 
-      sidebarTitle.textContent = poly.name || "(Unnamed area)";
-      sidebarSub.textContent = "Active range: " + fromLabel + " → " + toLabel;
+      elem.addEventListener("click", (evt) => {
+        evt.stopPropagation();
+        if (drawMode) return;
+        selectedId = poly.id;
+        updateSidebar();
+        renderPolygons();
+      });
 
-      const wrapper = document.createElement("div");
+      overlaySvg.appendChild(elem);
+    });
 
-      const status = document.createElement("div");
-      status.className = "status-pill " + (active ? "active" : "inactive");
-      status.textContent = active
-        ? "Active this month (" + monthText + ")"
-        : "Not active in " +
-          monthText +
-          " (active from " +
-          fromLabel +
-          " → " +
-          toLabel +
-          ")";
-      wrapper.appendChild(status);
-
-      const links = poly.links || [];
-      if (links.length > 0) {
-        const label = document.createElement("div");
-        label.className = "field-label";
-        label.textContent = "Items for this box:";
-        wrapper.appendChild(label);
-
-        const list = document.createElement("div");
-        list.className = "link-messages";
-
-        links.forEach((link) => {
-          const card = document.createElement("div");
-          card.className = "link-message";
-
-          const title = document.createElement("div");
-          title.className = "link-title";
-          title.textContent = link.label || "Item";
-
-          const urlDiv = document.createElement("div");
-          urlDiv.className = "link-url";
-
-          const a = document.createElement("a");
-          a.href = link.url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          a.textContent = link.url;
-
-          urlDiv.appendChild(a);
-          card.appendChild(title);
-          card.appendChild(urlDiv);
-          list.appendChild(card);
-        });
-
-        wrapper.appendChild(list);
-      } else {
-        const noLinks = document.createElement("div");
-        noLinks.className = "field-label";
-        noLinks.textContent =
-          "No links/files added yet. Edit polygons.json to add multiple items.";
-        wrapper.appendChild(noLinks);
-      }
-
-      sidebarContent.className = "";
-      sidebarContent.innerHTML = "";
-      sidebarContent.appendChild(wrapper);
-    }
-
-    // --- Draw mode (squares only, drag to see box) --------------------
-    function setDrawMode(on) {
-      drawMode = on;
-      currentCorners = [];
-      isDragging = false;
-      selectedId = null;
-      renderPolygons();
-      updateSidebar();
-
-      if (drawMode) {
-        toggleDrawBtn.classList.add("active");
-        toggleDrawBtn.textContent = "✏️ Draw: ON";
-        drawHint.style.display = "block";
-        finishBtn.disabled = false;
-        cancelBtn.disabled = false;
-      } else {
-        toggleDrawBtn.classList.remove("active");
-        toggleDrawBtn.textContent = "✏️ Draw: OFF";
-        drawHint.style.display = "none";
-        finishBtn.disabled = true;
-        cancelBtn.disabled = true;
-      }
-    }
-
-    function handleMouseDown(evt) {
-      if (!drawMode) return;
-      isDragging = true;
-      const norm = getNormalizedCoords(evt);
-      currentCorners = [norm, norm];
-      renderPolygons();
-    }
-
-    function handleMouseMove(evt) {
-      if (!drawMode || !isDragging || currentCorners.length === 0) return;
-      const norm = getNormalizedCoords(evt);
-      currentCorners[1] = norm;
-      renderPolygons();
-    }
-
-    function handleMouseUp(evt) {
-      if (!drawMode || !isDragging) return;
-      isDragging = false;
-      const norm = getNormalizedCoords(evt);
-      if (currentCorners.length === 1) {
-        currentCorners[1] = norm;
-      } else {
-        currentCorners[1] = norm;
-      }
-      renderPolygons();
-    }
-
-    function handleMouseLeave() {
-      if (!drawMode) return;
-      isDragging = false;
-    }
-
-    function finishSquare() {
-      if (!drawMode) return;
-      if (currentCorners.length < 2) {
-        alert("Click and drag on the map so there are two corners for the square.");
-        return;
-      }
-
+    // temp square while dragging
+    if (drawMode && currentCorners.length === 2) {
       const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
+      const temp = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      temp.setAttribute("points", pointsToSvg(squarePoints));
+      temp.setAttribute("class", "temp-polygon");
+      overlaySvg.appendChild(temp);
+    }
+  }
 
-      const name = prompt("Name for this area (box):", "New area");
-      if (name === null) return;
+  function updateMonthLabel() {
+    monthLabel.textContent = formatMonthLabel(selectedMonthId);
+    if (finMonthLabel) {
+      finMonthLabel.textContent = "Month: " + formatMonthLabel(selectedMonthId);
+    }
+  }
 
-      const fromDefault = selectedMonthId;
-      const toDefault = selectedMonthId;
-      const fromMonth = prompt(
-        'From month (YYYY-MM), e.g. "2025-01":',
-        fromDefault
-      );
-      if (fromMonth === null) return;
+  function updateSidebar() {
+    const monthText = formatMonthLabel(selectedMonthId);
 
-      const toMonth = prompt(
-        'To month (YYYY-MM), e.g. "2025-03":',
-        toDefault
-      );
-      if (toMonth === null) return;
-
-      const linkUrl = prompt("Optional: first link URL (PDF/photo):", "");
-      let links = [];
-      if (linkUrl && linkUrl.trim()) {
-        const label = prompt(
-          'Link label (e.g. "Roof report Jan 2025"):',
-          "Item"
-        );
-        links.push({
-          label: label || "Item",
-          url: linkUrl.trim(),
-        });
-      }
-
-      const id = "box-" + Date.now();
-      const newPoly = {
-        id,
-        name: name || "(Unnamed area)",
-        from_month: fromMonth || null,
-        to_month: toMonth || null,
-        links,
-        polygon: squarePoints,
-      };
-
-      polygons.push(newPoly);
-      currentCorners = [];
-      selectedId = id;
-      renderPolygons();
-      updateSidebar();
-
-      alert(
-        "Box added in memory. Use 'Download JSON' to save polygons.json and commit it to GitHub."
-      );
+    if (!selectedId) {
+      sidebarTitle.textContent = "No area selected";
+      sidebarSub.textContent =
+        "Viewing: " +
+        monthText +
+        ". Click a highlighted box to see its items, or draw a new one.";
+      sidebarContent.className = "placeholder";
+      sidebarContent.innerHTML =
+        "Each box has a from/to month (e.g. 2025-01 to 2025-03). " +
+        "For the selected month, active boxes are highlighted and inactive ones fade. " +
+        "Each box can have multiple links/files, shown as separate messages.";
+      return;
     }
 
-    function cancelDrawing() {
-      if (!drawMode) return;
-      currentCorners = [];
-      isDragging = false;
-      renderPolygons();
+    const poly = polygons.find((p) => p.id === selectedId);
+    if (!poly) {
+      selectedId = null;
       updateSidebar();
+      return;
     }
 
-    // --- Download JSON -------------------------------------------------
-    function downloadJson() {
-      const blob = new Blob([JSON.stringify(polygons, null, 2)], {
-        type: "application/json",
+    const active = isMonthInRange(selectedMonthId, poly.from_month, poly.to_month);
+    const fromLabel = poly.from_month ? formatMonthLabel(poly.from_month) : "N/A";
+    const toLabel = poly.to_month ? formatMonthLabel(poly.to_month) : "N/A";
+
+    sidebarTitle.textContent = poly.name || "(Unnamed area)";
+    sidebarSub.textContent = "Active range: " + fromLabel + " → " + toLabel;
+
+    const wrapper = document.createElement("div");
+
+    const status = document.createElement("div");
+    status.className = "status-pill " + (active ? "active" : "inactive");
+    status.textContent = active
+      ? "Active this month (" + monthText + ")"
+      : "Not active in " +
+        monthText +
+        " (active from " +
+        fromLabel +
+        " → " +
+        toLabel +
+        ")";
+    wrapper.appendChild(status);
+
+    const links = poly.links || [];
+    if (links.length > 0) {
+      const label = document.createElement("div");
+      label.className = "field-label";
+      label.textContent = "Items for this box:";
+      wrapper.appendChild(label);
+
+      const list = document.createElement("div");
+      list.className = "link-messages";
+
+      links.forEach((link) => {
+        const card = document.createElement("div");
+        card.className = "link-message";
+
+        const title = document.createElement("div");
+        title.className = "link-title";
+        title.textContent = link.label || "Item";
+
+        const urlDiv = document.createElement("div");
+        urlDiv.className = "link-url";
+
+        const a = document.createElement("a");
+        a.href = link.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = link.url;
+
+        urlDiv.appendChild(a);
+        card.appendChild(title);
+        card.appendChild(urlDiv);
+        list.appendChild(card);
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "polygons.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+
+      wrapper.appendChild(list);
+    } else {
+      const noLinks = document.createElement("div");
+      noLinks.className = "field-label";
+      noLinks.textContent =
+        "No links/files added yet. Edit polygons.json to add multiple items.";
+      wrapper.appendChild(noLinks);
     }
 
-    // --- Finances rendering -------------------------------------------
-    function renderFinances() {
-      // Find entry for selectedMonthId
-      const current = finances.find((f) => f.month === selectedMonthId) || null;
+    sidebarContent.className = "";
+    sidebarContent.innerHTML = "";
+    sidebarContent.appendChild(wrapper);
+  }
 
-      if (current) {
-        finCurrentNumbers.textContent =
-          "Reserves: " +
-          formatCurrency(current.reserves) +
-          " • Expenses: " +
-          formatCurrency(current.expenses);
-      } else {
-        finCurrentNumbers.textContent = "Reserves: – • Expenses: –";
-      }
+  // --- Draw mode (squares, drag-to-see, auto-prompt) ------------------
+  function setDrawMode(on) {
+    drawMode = on;
+    currentCorners = [];
+    isDragging = false;
+    selectedId = null;
+    renderPolygons();
+    updateSidebar();
 
-      // Chart: simple 2-bar chart (reserves vs expenses) for current month
-      finChart.innerHTML = "";
-      if (current) {
-        const maxVal = Math.max(current.reserves, current.expenses, 1);
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("viewBox", "0 0 100 100");
+    if (drawMode) {
+      toggleDrawBtn.classList.add("active");
+      toggleDrawBtn.textContent = "✏️ Draw: ON";
+      drawHint.style.display = "block";
 
-        const categories = [
-          { label: "Reserves", value: current.reserves },
-          { label: "Expenses", value: current.expenses },
-        ];
+      // keep these effectively disabled now
+      finishBtn.disabled = true;
+      cancelBtn.disabled = true;
+    } else {
+      toggleDrawBtn.classList.remove("active");
+      toggleDrawBtn.textContent = "✏️ Draw: OFF";
+      drawHint.style.display = "none";
+      finishBtn.disabled = true;
+      cancelBtn.disabled = true;
+    }
+  }
 
-        categories.forEach((cat, idx) => {
-          const barWidth = 20;
-          const gap = 10;
-          const x = 15 + idx * (barWidth + gap);
-          const height = (cat.value / maxVal) * 60;
-          const y = 80 - height;
+  function handleMouseDown(evt) {
+    if (!drawMode) return;
+    isDragging = true;
+    const norm = getNormalizedCoords(evt);
+    currentCorners = [norm, norm];
+    renderPolygons();
+  }
 
-          const rect = document.createElementNS(svgNS, "rect");
-          rect.setAttribute("x", String(x));
-          rect.setAttribute("y", String(y));
-          rect.setAttribute("width", String(barWidth));
-          rect.setAttribute("height", String(height));
-          rect.setAttribute("fill", idx === 0 ? "#4ade80" : "#f97316");
-          svg.appendChild(rect);
+  function handleMouseMove(evt) {
+    if (!drawMode || !isDragging || currentCorners.length === 0) return;
+    const norm = getNormalizedCoords(evt);
+    currentCorners[1] = norm;
+    renderPolygons();
+  }
 
-          const label = document.createElementNS(svgNS, "text");
-          label.setAttribute("x", String(x + barWidth / 2));
-          label.setAttribute("y", "90");
-          label.setAttribute("text-anchor", "middle");
-          label.setAttribute("font-size", "6");
-          label.textContent = cat.label;
-          svg.appendChild(label);
-        });
+  function handleMouseUp(evt) {
+    if (!drawMode || !isDragging) return;
+    isDragging = false;
+    const norm = getNormalizedCoords(evt);
+    if (currentCorners.length === 1) {
+      currentCorners[1] = norm;
+    } else {
+      currentCorners[1] = norm;
+    }
 
-        finChart.appendChild(svg);
-      } else {
-        const span = document.createElement("span");
-        span.className = "fin-placeholder";
-        span.textContent = "No data for this month yet. Add entries in finances.json.";
-        finChart.appendChild(span);
-      }
+    // if the box is too tiny, ignore (probably a click, not a drag)
+    const dx = Math.abs(currentCorners[1].x - currentCorners[0].x);
+    const dy = Math.abs(currentCorners[1].y - currentCorners[0].y);
+    if (dx < 0.005 || dy < 0.005) {
+      currentCorners = [];
+      renderPolygons();
+      return;
+    }
 
-      // Table: show all months
-      finTableBody.innerHTML = "";
-      if (!finances || finances.length === 0) {
+    renderPolygons();
+    commitSquareFromCorners();
+  }
+
+  function handleMouseLeave() {
+    if (!drawMode) return;
+    isDragging = false;
+  }
+
+  function commitSquareFromCorners() {
+    if (currentCorners.length < 2) return;
+
+    const squarePoints = getSquareFromCorners(currentCorners[0], currentCorners[1]);
+
+    const name = prompt("Name for this area (box):", "New area");
+    if (name === null) {
+      currentCorners = [];
+      renderPolygons();
+      return;
+    }
+
+    const fromDefault = selectedMonthId;
+    const toDefault = selectedMonthId;
+    const fromMonth = prompt(
+      'From month (YYYY-MM), e.g. "2025-01":',
+      fromDefault
+    );
+    if (fromMonth === null) {
+      currentCorners = [];
+      renderPolygons();
+      return;
+    }
+
+    const toMonth = prompt(
+      'To month (YYYY-MM), e.g. "2025-03":',
+      toDefault
+    );
+    if (toMonth === null) {
+      currentCorners = [];
+      renderPolygons();
+      return;
+    }
+
+    const linkUrl = prompt("Optional: first link URL (PDF/photo):", "");
+    let links = [];
+    if (linkUrl && linkUrl.trim()) {
+      const label = prompt(
+        'Link label (e.g. "Roof report Jan 2025"):',
+        "Item"
+      );
+      links.push({
+        label: label || "Item",
+        url: linkUrl.trim(),
+      });
+    }
+
+    const id = "box-" + Date.now();
+    const newPoly = {
+      id,
+      name: name || "(Unnamed area)",
+      from_month: fromMonth || null,
+      to_month: toMonth || null,
+      links,
+      polygon: squarePoints,
+    };
+
+    polygons.push(newPoly);
+    currentCorners = [];
+    selectedId = id;
+    renderPolygons();
+    updateSidebar();
+
+    alert(
+      "Box added in memory. Use 'Download JSON' to save polygons.json and commit it to GitHub."
+    );
+  }
+
+  function cancelDrawing() {
+    if (!drawMode) return;
+    currentCorners = [];
+    isDragging = false;
+    renderPolygons();
+    updateSidebar();
+  }
+
+  // --- Download JSON --------------------------------------------------
+  function downloadJson() {
+    const blob = new Blob([JSON.stringify(polygons, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "polygons.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Finances rendering -------------------------------------------
+  function renderFinances() {
+    const current =
+      finances.find((f) => f.month === selectedMonthId) || null;
+
+    if (current) {
+      finCurrentNumbers.textContent =
+        "Reserves: " +
+        formatCurrency(current.reserves) +
+        " • Expenses: " +
+        formatCurrency(current.expenses);
+    } else {
+      finCurrentNumbers.textContent = "Reserves: – • Expenses: –";
+    }
+
+    finChart.innerHTML = "";
+    if (current) {
+      const maxVal = Math.max(current.reserves, current.expenses, 1);
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 100 100");
+
+      const categories = [
+        { label: "Reserves", value: current.reserves },
+        { label: "Expenses", value: current.expenses },
+      ];
+
+      categories.forEach((cat, idx) => {
+        const barWidth = 20;
+        const gap = 10;
+        const x = 15 + idx * (barWidth + gap);
+        const height = (cat.value / maxVal) * 60;
+        const y = 80 - height;
+
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", String(x));
+        rect.setAttribute("y", String(y));
+        rect.setAttribute("width", String(barWidth));
+        rect.setAttribute("height", String(height));
+        rect.setAttribute("fill", idx === 0 ? "#4ade80" : "#f97316");
+        svg.appendChild(rect);
+
+        const label = document.createElementNS(svgNS, "text");
+        label.setAttribute("x", String(x + barWidth / 2));
+        label.setAttribute("y", "90");
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("font-size", "6");
+        label.textContent = cat.label;
+        svg.appendChild(label);
+      });
+
+      finChart.appendChild(svg);
+    } else {
+      const span = document.createElement("span");
+      span.className = "fin-placeholder";
+      span.textContent = "No data for this month yet. Add entries in finances.json.";
+      finChart.appendChild(span);
+    }
+
+    finTableBody.innerHTML = "";
+    if (!finances || finances.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.className = "fin-placeholder";
+      td.textContent = "No data. Add entries in finances.json.";
+      tr.appendChild(td);
+      finTableBody.appendChild(tr);
+      return;
+    }
+
+    finances
+      .slice()
+      .sort((a, b) => monthIdToIndex(a.month) - monthIdToIndex(b.month))
+      .forEach((row) => {
         const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = 3;
-        td.className = "fin-placeholder";
-        td.textContent = "No data. Add entries in finances.json.";
-        tr.appendChild(td);
-        finTableBody.appendChild(tr);
-        return;
-      }
-
-      finances
-        .slice()
-        .sort((a, b) => monthIdToIndex(a.month) - monthIdToIndex(b.month))
-        .forEach((row) => {
-          const tr = document.createElement("tr");
-          if (row.month === selectedMonthId) {
-            tr.className = "highlight-row";
-          }
-
-          const tdMonth = document.createElement("td");
-          tdMonth.textContent = formatMonthLabel(row.month);
-          tr.appendChild(tdMonth);
-
-          const tdRes = document.createElement("td");
-          tdRes.textContent = formatCurrency(row.reserves);
-          tr.appendChild(tdRes);
-
-          const tdExp = document.createElement("td");
-          tdExp.textContent = formatCurrency(row.expenses);
-          tr.appendChild(tdExp);
-
-          finTableBody.appendChild(tr);
-        });
-    }
-
-    function formatCurrency(x) {
-      if (typeof x !== "number") return "–";
-      return x.toLocaleString(undefined, {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      });
-    }
-
-    // --- Tabs ----------------------------------------------------------
-    function setActiveTab(tab) {
-      activeTab = tab;
-      if (tab === "operations") {
-        operationsView.style.display = "flex";
-        financesView.style.display = "none";
-        tabOperations.classList.add("active");
-        tabFinances.classList.remove("active");
-        toggleDrawBtn.style.display = "inline-flex";
-      } else {
-        operationsView.style.display = "none";
-        financesView.style.display = "flex";
-        tabOperations.classList.remove("active");
-        tabFinances.classList.add("active");
-        toggleDrawBtn.style.display = "none";
-      }
-      // Re-render views that depend on month
-      updateMonthLabel();
-      renderFinances();
-      renderPolygons();
-      updateSidebar();
-    }
-
-    // --- Month navigation ----------------------------------------------
-    function setSelectedMonth(monthId) {
-      selectedMonthId = monthId;
-      updateMonthLabel();
-      renderPolygons();
-      updateSidebar();
-      renderFinances();
-    }
-
-    // --- Event wiring --------------------------------------------------
-    document.addEventListener("DOMContentLoaded", () => {
-      loadPolygons();
-      loadFinances();
-
-      toggleDrawBtn.addEventListener("click", () => {
-        setDrawMode(!drawMode);
-      });
-
-      mapContainer.addEventListener("mousedown", handleMouseDown);
-      mapContainer.addEventListener("mousemove", handleMouseMove);
-      mapContainer.addEventListener("mouseup", handleMouseUp);
-      mapContainer.addEventListener("mouseleave", handleMouseLeave);
-
-      finishBtn.addEventListener("click", () => {
-        finishSquare();
-      });
-
-      cancelBtn.addEventListener("click", () => {
-        cancelDrawing();
-      });
-
-      downloadBtn.addEventListener("click", () => {
-        if (!polygons || polygons.length === 0) {
-          const proceed = confirm(
-            "No polygons loaded yet. Download an empty polygons.json file?"
-          );
-          if (!proceed) return;
+        if (row.month === selectedMonthId) {
+          tr.className = "highlight-row";
         }
-        downloadJson();
-      });
 
-      prevMonthBtn.addEventListener("click", () => {
-        setSelectedMonth(shiftMonthId(selectedMonthId, -1));
-      });
+        const tdMonth = document.createElement("td");
+        tdMonth.textContent = formatMonthLabel(row.month);
+        tr.appendChild(tdMonth);
 
-      nextMonthBtn.addEventListener("click", () => {
-        setSelectedMonth(shiftMonthId(selectedMonthId, 1));
-      });
+        const tdRes = document.createElement("td");
+        tdRes.textContent = formatCurrency(row.reserves);
+        tr.appendChild(tdRes);
 
-      tabOperations.addEventListener("click", () => {
-        setActiveTab("operations");
-      });
+        const tdExp = document.createElement("td");
+        tdExp.textContent = formatCurrency(row.expenses);
+        tr.appendChild(tdExp);
 
-      tabFinances.addEventListener("click", () => {
-        setActiveTab("finances");
+        finTableBody.appendChild(tr);
       });
+  }
 
-      // Initial label/tab
-      updateMonthLabel();
+  function formatCurrency(x) {
+    if (typeof x !== "number") return "–";
+    return x.toLocaleString(undefined, {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    });
+  }
+
+  // --- Tabs ----------------------------------------------------------
+  function setActiveTab(tab) {
+    activeTab = tab;
+    if (tab === "operations") {
+      operationsView.style.display = "flex";
+      financesView.style.display = "none";
+      tabOperations.classList.add("active");
+      tabFinances.classList.remove("active");
+      toggleDrawBtn.style.display = "inline-flex";
+    } else {
+      operationsView.style.display = "none";
+      financesView.style.display = "flex";
+      tabOperations.classList.remove("active");
+      tabFinances.classList.add("active");
+      toggleDrawBtn.style.display = "none";
+    }
+    updateMonthLabel();
+    renderFinances();
+    renderPolygons();
+    updateSidebar();
+  }
+
+  // --- Month navigation ----------------------------------------------
+  function setSelectedMonth(monthId) {
+    selectedMonthId = monthId;
+    updateMonthLabel();
+    renderPolygons();
+    updateSidebar();
+    renderFinances();
+  }
+
+  // --- Event wiring --------------------------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+    loadPolygons();
+    loadFinances();
+
+    toggleDrawBtn.addEventListener("click", () => {
+      setDrawMode(!drawMode);
+    });
+
+    mapContainer.addEventListener("mousedown", handleMouseDown);
+    mapContainer.addEventListener("mousemove", handleMouseMove);
+    mapContainer.addEventListener("mouseup", handleMouseUp);
+    mapContainer.addEventListener("mouseleave", handleMouseLeave);
+
+    // Finish / Cancel buttons kept but effectively unused now
+    finishBtn.disabled = true;
+    cancelBtn.disabled = true;
+
+    downloadBtn.addEventListener("click", () => {
+      if (!polygons || polygons.length === 0) {
+        const proceed = confirm(
+          "No polygons loaded yet. Download an empty polygons.json file?"
+        );
+        if (!proceed) return;
+      }
+      downloadJson();
+    });
+
+    prevMonthBtn.addEventListener("click", () => {
+      setSelectedMonth(shiftMonthId(selectedMonthId, -1));
+    });
+
+    nextMonthBtn.addEventListener("click", () => {
+      setSelectedMonth(shiftMonthId(selectedMonthId, 1));
+    });
+
+    tabOperations.addEventListener("click", () => {
       setActiveTab("operations");
     });
-  </script>
+
+    tabFinances.addEventListener("click", () => {
+      setActiveTab("finances");
+    });
+
+    updateMonthLabel();
+    setActiveTab("operations");
+  });
+</script>
+
 </body>
 </html>
